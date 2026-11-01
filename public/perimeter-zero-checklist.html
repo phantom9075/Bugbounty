@@ -330,6 +330,38 @@ T-039|Clickjacking|iframe embed¦frame-busting bypass¦drag-drop|Framing blocked
 T-040|Cross-domain Policy Files|crossdomain.xml¦clientaccesspolicy.xml|Restrictive
 T-041|Default Sample Apps|/examples/¦/docs/¦/test/¦/phpinfo.php|Removed
 T-042|HTTP Parameter Pollution|Duplicate params¦array params¦; separator|Consistent parsing
+#A06|1|web|Vulnerable and Outdated Components
+T-043|Fingerprinting|Server banner¦framework version¦JS libs¦CMS¦source maps|Versions hidden
+T-044|Known CVE Verification|NVD/Exploit-DB match¦PoC check|No exploitable CVEs
+T-045|Outdated JS Libraries|jQuery <3.5¦Angular¦React¦Bootstrap versions|Up to date
+T-046|Outdated Server/Middleware|Apache¦Nginx¦Tomcat¦IIS¦Spring¦Struts|Patched
+#A07|1|web|Identification and Authentication Failures
+T-047|Username Enumeration|Login response¦timing¦registration¦password reset|Generic messages
+T-048|Brute Force Protection|Lockout¦CAPTCHA¦rate limit¦exponential backoff|Brute force blocked
+T-049|Password Policy|Length¦complexity¦breached password check¦reuse|Strong policy
+T-050|Password Reset Flaws|Predictable token¦long expiry¦no invalidation¦host header injection¦token in URL|Secure reset
+T-051|Session Fixation|Session ID pre/post login¦cookie injection|New session on login
+T-052|Session Timeout|Idle timeout¦absolute timeout|Timeouts enforced
+T-053|MFA Bypass|Skip 2FA¦response tampering¦OTP brute¦OTP reuse¦backup code abuse|MFA enforced
+T-054|Credential Stuffing|Breached credential lists¦rate limit|Blocked
+T-055|Remember-Me Token|Predictable¦long-lived¦no rotation|Secure token
+T-056|Account Enumeration via Timing|Response time diff|Uniform timing
+#A08|1|web|Software and Data Integrity Failures
+T-057|Insecure Deserialization|Java serialized¦PHP serialize¦Python pickle¦.NET ViewState¦YAML|No deserialization RCE
+T-058|Third-party Script Integrity|Missing SRI¦CDN compromise|SRI present
+T-059|CI/CD Supply Chain|Unsigned artifacts¦exposed build secrets|Signed & secret-free
+T-060|Auto-update Mechanism|Unsigned updates¦MITM|Signed updates
+#A09|1|web|Security Logging and Monitoring Failures
+T-061|Log Injection|Newline in input¦forged log entries|Sanitized logs
+T-062|Sensitive Data in Logs|Passwords¦tokens¦PII in logs|Redacted
+T-063|Missing Audit Trail|Login¦admin action¦payment|Audit logged
+T-064|Log Flooding|Voluminous requests to exhaust logs|Rate limited
+#A10|1|web|Server-Side Request Forgery
+T-065|Internal Network Probe|127.0.0.1¦169.254.169.254¦10.x¦192.168.x¦[::1]|Blocked
+T-066|Protocol Exploitation|file://¦dict://¦gopher://¦ftp://¦ldap://|Only http(s)
+T-067|DNS Rebinding|Rebinding to internal IP|Blocked
+T-068|Redirect-based SSRF|Open redirect → internal|No bypass
+T-069|Blind SSRF|DNSLog¦Collaborator¦time-based|No outbound to internal
 #API1|2|api|Broken Object Level Authorization
 T-070|IDOR on API|Replace userId¦orderId¦accountId¦UUID¦nested object|Cannot access others' data
 T-071|Nested Object Traversal|/users/1/orders/2 → /users/2/orders/2|Ownership checked at each level
@@ -340,24 +372,225 @@ T-074|JWT Key Confusion|RS256→HS256 with public key as HMAC secret|Rejected
 T-075|JWT Expiry/Revocation|Expired¦revoked¦logout token reuse|Rejected
 T-076|JWT Claim Tampering|role¦sub¦iss¦aud¦kid injection|Verified
 T-077|API Key Leakage|URL¦Referer¦JS¦logs¦git|Not leaked
+T-078|Credential Stuffing on API|Login endpoint¦rate limit|Blocked
+T-079|Weak Password Login|Default creds¦common passwords|Rejected
 #API3|2|api|Broken Object Property Level Authorization
 T-080|Mass Assignment|role¦isAdmin¦balance¦price¦verified in JSON|Ignored
 T-081|Excessive Data Exposure|passwordHash¦internalNotes¦PII in list/detail|Filtered by schema
+T-082|Response Schema Diff|Compare list vs detail¦version diff|Minimal fields
 #API4|2|api|Unrestricted Resource Consumption
 T-083|Rate Limit Missing|Login¦SMS¦order¦search|429 returned
 T-084|Pagination Abuse|limit=999999¦cursor manipulation¦offset overflow|Capped
 T-085|GraphQL Complexity|Deep nesting¦recursive fragments¦aliases|Depth/complexity limit
-#AU-LOG|5|web|Authentication & Login
+T-086|Payload Size|Huge JSON¦zip bomb¦XML bomb|Size limit
+T-087|File Upload Size|Unlimited upload|Capped
+#API5|2|api|Broken Function Level Authorization
+T-088|Admin Endpoint Access|Regular token → /api/admin/*|Denied
+T-089|Method Tampering|GET instead of DELETE¦POST instead of PUT|Method ACL
+T-090|Versioned Function Bypass|/v1/admin vs /v2/admin|Both protected
+#API6|2|api|Unrestricted Access to Sensitive Business Flows
+T-091|Automated Abuse|Batch register¦coupon claim¦comment|Risk controls
+T-092|Inventory Hoarding|Scripted cart/order|Inventory lock
+T-093|Scraping|Bulk data pull via API|Throttled
+#API7|2|api|Server Side Request Forgery
+T-094|Callback/Webhook URL|Internal URL in callback|Blocked
+T-095|URL Fetcher|Image/URL import endpoint|Blocked
+#API8|2|api|Security Misconfiguration
+T-096|GraphQL Introspection|Introspection query|Disabled in prod
+T-097|Verbose Errors|500 with stack trace|Generic
+T-098|CORS|* + credentials|Restricted
+T-099|Security Headers|HSTS¦CSP on API|Present
+T-100|Unprotected Swagger/GraphiQL|/swagger-ui.html¦/graphiql¦/openapi.json|Protected
+#API9|2|api|Improper Inventory Management
+T-101|Old API Versions|/v1/¦/api/old/¦deprecated endpoints|Offline or protected
+T-102|Debug Endpoints|/actuator¦/debug¦/metrics|Protected
+T-103|Shadow APIs|Undocumented endpoints via fuzzing/JS recon|Discovered & secured
+T-104|Host/Environment Confusion|Staging vs prod¦host header routing|Isolated
+#API10|2|api|Unsafe Consumption of APIs
+T-105|Third-party Data Trust|Weather¦payment¦OAuth provider responses|Validated
+T-106|Redirect from Third-party|Open redirect from upstream|Not followed blindly
+T-107|Injection via Third-party|Malicious data from upstream API|Sanitized
+#LC1|3|web|Pre-login
+T-108|Registration Logic|Duplicate username¦email enumeration¦weak password¦terms bypass¦invite bypass|Secure registration
+T-109|CAPTCHA|Bypass¦reuse¦OCR¦audio bypass¦removed param|Enforced
+T-110|Email Verification|Bypass¦reuse token¦predict token¦skip step|Enforced
+#LC2|3|web|Login
+T-111|Default Credentials|admin/admin¦root/root¦test/test|Rejected
+T-112|Brute Force|Lockout¦CAPTCHA¦rate limit|Blocked
+T-113|Username Enumeration|Response¦timing¦status|Generic
+T-114|SQLi/NoSQLi in Login|Classic tautology injection¦NoSQL operator objects|Blocked
+T-115|JWT/Session Generation|Predictable¦weak entropy|Strong random
+T-116|MFA Bypass|Skip¦response tamper¦OTP brute¦reuse|Enforced
+#LC3|3|web|Session
+T-117|Cookie Flags|Secure¦HttpOnly¦SameSite¦Domain¦Path|Correct flags
+T-118|Session Fixation|Pre/post login ID|Rotated
+T-119|Session Timeout|Idle¦absolute|Enforced
+T-120|Session in URL|;jsessionid=¦token in query|Not in URL
+T-121|Concurrent Sessions|Multiple logins|Policy enforced
+#LC4|3|web|Business Ops
+T-122|IDOR / Privilege Escalation|See A01/API1|Enforced
+T-123|Injection|See A03|Blocked
+T-124|CSRF|Token missing¦token reuse¦SameSite bypass¦JSON CSRF¦method override|Token validated
+T-125|File Upload|Extension bypass (.php5, .phtml, .jspx)¦MIME tamper¦magic byte¦path traversal¦SVG XSS¦XXE¦zip slip¦polyglot|Secure upload
+T-126|Business Logic Bypass|Negative qty¦price tamper¦coupon reuse¦refund abuse|Enforced
+#LC5|3|web|Logout
+T-127|Server-side Invalidation|Session destroyed¦token revoked|Invalidated
+T-128|Token Reuse|Old cookie/JWT after logout|Rejected
+T-129|Browser Back Button|Cached sensitive page|no-store
+#LC6|3|web|Post-logout
+T-130|Password Reset|See A07|Secure
+T-131|Account Deletion|Data retention¦token invalidation|Compliant
+#WS|4|web|WebSocket
+T-132|Handshake|Origin validation¦auth token|Origin/auth checked
+T-133|Message Injection|SQLi¦XSS¦command injection in frames|Sanitized
+T-134|Unauthorized Subscription|Subscribe to others' channels|Authorized
+T-135|CSWSH|Cross-site WebSocket hijacking|Origin enforced
+#CS|4|web|Client Storage
+T-136|localStorage/sessionStorage|Tokens¦PII|No secrets
+T-137|IndexedDB / Cache API|Sensitive data|No secrets
+T-138|Service Worker|Cache poisoning¦scope abuse|Secure
+#CL|4|web|Client-side
+T-139|DOM Clobbering|HTML injection in DOM|Neutralized
+T-140|postMessage|Origin check¦* target|Validated
+T-141|Prototype Pollution|__proto__¦constructor.prototype in JSON|Blocked
+T-142|Client-side Validation Bypass|Disable JS¦tamper request|Server-side enforced
+T-143|Source Map Exposure|.map files|Removed in prod
+#XML|4|both|XML
+T-144|XXE|File read¦SSRF¦blind OOB¦billion laughs|Disabled
+T-145|XSLT Injection|Template payload|Blocked
+#FIL|4|both|File
+T-146|Path Traversal|Read/write outside root|Blocked
+T-147|Zip Slip|../ in archive|Blocked
+T-148|Insecure Direct File Access|Guessed filenames|Authorized
+#HH|4|both|Host Header
+T-149|Host Header Injection|Password reset poisoning¦cache poisoning¦routing|Validated
+T-150|Cache Poisoning|X-Forwarded-Host¦X-Forwarded-For|Not trusted
+#HTTP|4|both|HTTP
+T-151|Request Smuggling|CL.TE¦TE.CL¦TE.TE|Rejected
+T-152|Response Splitting|CRLF in headers|Blocked
+T-153|HTTP/2 Downgrade|h2c smuggling|Blocked
+#OA|4|both|OAuth/OIDC
+T-154|Redirect URI|Open redirect¦wildcard|Strict match
+T-155|State/Nonce|Missing¦reuse|Enforced
+T-156|Token Leakage|Referer¦URL fragment|Not leaked
+T-157|Scope Escalation|Request extra scopes|Validated
+#SAML|4|both|SAML
+T-158|Signature Wrapping|XSW attacks|Validated
+T-159|XXE in Assertion|Payload|Disabled
+#GQL|4|api|GraphQL
+T-160|Introspection|Enabled in prod|Disabled
+T-161|Batching Abuse|Query batching¦alias overloading|Limited
+T-162|Injection|Args¦directives|Sanitized
+T-163|Field-level Auth|Sensitive fields|Authorized
+#RL|4|both|Rate Limiting
+T-164|Global|IP¦user¦endpoint|Enforced
+T-165|Bypass|X-Forwarded-For rotation¦header spoof|Cannot bypass
+#ERR|4|both|Error Handling
+T-166|Stack Trace|Prod errors|Generic
+T-167|Fail-open|Auth service down|Fail-closed
+#SEC|4|both|Secrets
+T-168|Hardcoded|JS¦config¦git¦env|None
+T-169|Exposure in URLs|Tokens in query|Not in URL
+#INF|4|both|Info Disclosure
+T-170|Comments in HTML/JS|Dev notes¦TODOs|Removed
+T-171|HTTP Verbose Headers|X-Powered-By¦Server|Minimized
+T-172|Robots.txt / Sitemap|Hidden paths|Reviewed
+T-173|Git/SVN Metadata|.git/¦.svn/|Blocked
+T-174|Source Code Disclosure|.php~¦.jsp.bak|Blocked
+#SUB|4|both|Subdomain
+T-175|Takeover|Dangling CNAME|Claimed
+#DNS|4|both|DNS
+T-176|Zone Transfer|AXFR|Blocked
+#TLS|4|both|TLS
+T-177|Certificate Transparency|Leaked subdomains|Reviewed
+#CLD|4|both|Cloud
+T-178|Metadata Service|169.254.169.254 via SSRF|Blocked
+T-179|S3/GCS Bucket|Public listing/write|Restricted
+#MOB|4|api|Mobile/API
+T-180|Certificate Pinning Bypass|Frida¦objection|Pinning enforced
+T-181|Root/Jailbreak Detection|Bypass|Enforced
+#AU-LOG|5|web|Login
 AUTH-01|Credential Transport Encryption|HTTP login endpoint¦mixed content¦HSTS missing¦weak redirect|Credentials only transmitted over HTTPS
-AUTH-02|Default Credentials|admin/admin¦admin/password¦root/root¦tomcat/tomcat¦test/test|Default accounts disabled
-AUTH-03|Weak Lockout Mechanism|No lockout¦lockout bypass via IP rotation|Effective lockout or rate limit
-AUTH-04|Username Enumeration|Response difference¦timing difference¦registration leakage|Generic error messages for login failures
-AUTH-05|SQL Injection in Login|Classic tautology injection¦comment-terminated username|Authentication bypass prevented
-AUTH-06|Auth Schema Bypass|Direct access to authenticated pages¦forced browsing¦cookie tampering|Server-side auth check on every request
-AUTH-07|Remember Me Token|Predictable token¦long-lived token¦no rotation|Secure random, rotated token
-AUTH-52|2FA Bypass via Response Manipulation|Flip verified:false→true¦mfa_required:true→false|Server-side enforcement
-AUTH-67|Session Fixation|Session ID unchanged after login|New session ID issued on login
-AUTH-68|Cookie Attributes|Secure missing¦HttpOnly missing¦SameSite missing|All flags set correctly`;
+AUTH-02|Default Credentials|admin/admin¦admin/password¦root/root¦tomcat/tomcat¦test/test¦blank password|Default accounts disabled or forced change
+AUTH-03|Weak Lockout Mechanism|No lockout¦lockout bypass via IP rotation¦lockout reset via password reset¦lockout itself as enumeration oracle|Failed attempts trigger effective lockout or rate limit
+AUTH-04|Username Enumeration|Response content difference¦status code difference¦timing difference¦registration endpoint leakage¦password reset endpoint leakage|Generic error messages for all login failures
+AUTH-05|SQL Injection in Login|Classic tautology injection¦comment-terminated username¦NoSQL operator objects|Authentication bypass prevented
+AUTH-06|Authentication Schema Bypass|Direct access to authenticated pages¦forced browsing¦cookie tampering¦parameter tampering (authenticated=true)|Server-side auth check on every request
+AUTH-07|Remember Me Token|Predictable token¦long-lived token¦no rotation¦token in URL¦no HttpOnly|Secure random, rotated, HttpOnly cookie
+AUTH-08|Browser Cache Weakness|Back button after logout¦cached login page¦Cache-Control missing|Sensitive pages no-store
+AUTH-09|Credential Stuffing|Breached credential lists¦rate limit absent|Throttling/lockout on distributed attempts
+AUTH-10|Login CSRF|No CSRF token¦token reuse¦SameSite bypass|Login form CSRF-protected
+AUTH-11|HTTP Method Tampering|GET instead of POST for login¦method override headers|Method enforced
+AUTH-12|Host Header Injection in Login|X-Forwarded-Host spoofing¦password reset link poisoning|Host header validated
+#AU-REG|5|web|Registration
+AUTH-13|Mass Assignment / Role Injection|role=admin¦isAdmin=true¦verified=true¦plan=premium in JSON/form|Server ignores privileged fields
+AUTH-14|Duplicate Account Prevention|Same email re-registration¦case variation (Victim vs victim)¦whitespace variation¦Unicode confusable (vіctim Cyrillic)¦email plus-alias|Duplicates rejected, no account overwrite
+AUTH-15|Email Verification Bypass|Access authenticated endpoints without verification¦verification token predictable¦token reuse¦skip verification step|Verification enforced before sensitive actions
+AUTH-16|Rate Limiting|Unlimited registrations¦CAPTCHA missing¦CAPTCHA reuse¦CAPTCHA OCR bypass|Registration throttled
+AUTH-17|Username/Route Clobbering|Register admin¦images¦api¦static¦.well-known as username|Reserved paths not shadowed
+AUTH-18|Password Policy|Weak password accepted (123456, password, length <8)¦no complexity check¦no breached password check|Strong policy enforced
+AUTH-19|Input Validation|Email format bypass¦XSS in username/email¦SQLi in registration fields¦oversized input|Input sanitized/validated
+AUTH-20|User Enumeration via Registration|"Email already exists" vs generic message|No account existence leak
+AUTH-21|Disposable Email Acceptance|mailinator.com¦guerrillamail.com¦plus-alias abuse|Disposable emails blocked if policy requires
+AUTH-22|Invite/Referral Bypass|Skip invite code¦reuse invite code¦predict invite code|Invite enforced if required
+AUTH-23|Terms of Service Bypass|accepted_terms=true without checkbox¦direct API call|ToS acceptance enforced
+#AU-PWD|5|web|Forgot Password / Password Reset
+AUTH-24|User Enumeration via Reset|"Email sent" vs "Email not found"¦timing difference¦response length difference|Generic response for valid/invalid emails
+AUTH-25|Reset Token Strength|Predictable token (MD5 of email, timestamp)¦short token (<128 bits)¦sequential token¦GUID with weak PRNG|CSPRNG, ≥128 bits entropy
+AUTH-26|Token Expiry|No expiry¦long expiry (>1 hour)¦expiry only on use¦expiry only on new request|Time-limited (typically ≤1 hour)
+AUTH-27|Token Reuse|Same token used twice¦token still valid after password change¦token valid after new token issued|Single-use, invalidated after use
+AUTH-28|Host Header Injection|X-Forwarded-Host: attacker.com¦Host: attacker.com in reset request|Reset link not poisoned
+AUTH-29|User ID Parameter Tampering|reset.php?userid=1&token=... → change userid to another user|User ID bound to token, not manipulable
+AUTH-30|Token in Referer Leakage|Reset page loads third-party resources¦token in URL leaks via Referer header|Referrer-Policy set, token not in URL
+AUTH-31|Reset Link Over HTTP|Token sent via HTTP¦no HTTPS redirect|HTTPS enforced
+AUTH-32|Token in Response Body|Token returned in API response instead of email|Token never in response
+AUTH-33|Password Reset CSRF|No CSRF token on reset form¦token reuse|CSRF-protected
+AUTH-34|Security Questions Weakness|Guessable questions (mother's maiden name)¦brute-forceable answers¦no rate limit|Security questions not sole factor
+AUTH-35|Password Change (Authenticated)|Old password required¦current session invalidation¦other sessions invalidation|Re-authentication required, sessions invalidated
+AUTH-36|Email Spoofing Protection|SPF¦DKIM¦DMARC on sending domain|Anti-spoofing configured
+AUTH-37|SMS/Phone Reset|SIM swap risk¦OTP brute-force¦rate limiting on SMS cost|OTP rate-limited, phone verification strong
+#AU-OA|5|both|OAuth / OIDC
+AUTH-38|redirect_uri Manipulation|External domain¦subdomain¦path traversal (/callback/../evil)¦open redirect on trusted domain¦wildcard¦encoding tricks|Strict exact match on registered URI
+AUTH-39|Missing/Weak State Parameter|No state¦reusable state¦predictable state¦CSRF via missing state|State bound to session, validated
+AUTH-40|PKCE Enforcement|code_challenge missing in authorization code flow¦code_verifier not validated|PKCE required for public clients
+AUTH-41|Implicit Flow Usage|response_type=token¦access token in URL fragment|Implicit flow deprecated/disabled
+AUTH-42|Token Leakage|Access token in URL query¦token in Referer¦token in browser history¦token in logs|Tokens not in URL, Referrer-Policy set
+AUTH-43|Scope Escalation|Request admin¦write¦*¦full scopes beyond authorization|Scopes validated server-side
+AUTH-44|Client Secret Exposure|Secret in JavaScript¦mobile binary¦git repository¦source map|No client secret in public clients
+AUTH-45|Authorization Code Injection|Inject victim's code into attacker session¦code substitution|Code bound to client and redirect_uri
+AUTH-46|Forced Profile Linking|CSRF on account linking¦missing state in link request¦link attacker's social to victim account|Linking requires re-auth/state
+AUTH-47|Account Hijacking via redirect_uri|Open redirect chain¦code theft via manipulated redirect|Redirect validated, no open redirect
+AUTH-48|Token Endpoint Security|HTTP instead of HTTPS¦client authentication bypass¦refresh token rotation missing|HTTPS, client auth enforced
+AUTH-49|JWT in OAuth|alg:none¦weak HMAC secret¦claim tampering (sub, role)¦kid injection|JWT signature validated, claims verified
+AUTH-50|OIDC nonce Validation|Missing nonce¦reusable nonce¦nonce not tied to ID token|Nonce enforced and validated
+AUTH-51|Logout/Token Revocation|OAuth logout doesn't revoke tokens¦refresh token still valid after logout|Token revocation implemented
+#AU-MFA|5|web|2FA / MFA
+AUTH-52|2FA Bypass via Response Manipulation|Flip verified:false→true¦mfa_required:true→false¦status code 403→200¦remove OTP parameter entirely|Server-side enforcement, not client-side
+AUTH-53|Direct Access to Post-2FA Pages|Access /dashboard after password only¦skip /mfa/verify step|Partially-authenticated session rejected
+AUTH-54|OTP Brute Force|No attempt limit¦6-digit/4-digit brute-force¦counter reset via new code request¦IP rotation to bypass throttle|Attempt cap, lockout, rate limit
+AUTH-55|OTP Reuse|Same OTP used multiple times¦OTP valid after successful use|Single-use OTP
+AUTH-56|OTP Expiry|OTP valid after 30/60/90+ seconds¦no time limit|Time-limited validity (typically 30s TOTP)
+AUTH-57|OTP Tied to Wrong Account|OTP for user A accepted for user B¦OTP not bound to session/user|OTP bound to correct user context
+AUTH-58|OIDC/SSO Bypass 2FA|TOTP-pending session obtains OIDC authorization code (real CVE pattern)|MFA state checked at every auth endpoint
+AUTH-59|Backup/Recovery Code Weakness|Short codes¦predictable¦reusable¦no rate limit¦no user notification on use|Strong random, single-use, notified
+AUTH-60|MFA Reset Process|Reset via email only (weaker than MFA)¦IDOR to reset other's MFA¦no re-auth|Reset as strong as MFA itself
+AUTH-61|MFA Management CSRF/IDOR|Disable MFA via CSRF¦change another user's MFA settings via IDOR|CSRF-protected, ownership checked
+AUTH-62|TOTP Secret Strength|Short secret (<160 bits)¦weak PRNG¦user-supplied weak secret|≥160 bits, CSPRNG
+AUTH-63|TOTP Window Abuse|Accepting many previous/next codes (e.g., ±5 windows)|Minimal window (typically ±1)
+AUTH-64|SMS/Email OTP Spam|No rate limit on sending¦cost exhaustion¦SMS bombing|Send rate limited
+AUTH-65|MFA Bypass via Alternative Auth|Security questions weaker than MFA¦password reset bypasses MFA|Alternative path equally strong
+AUTH-66|Race Condition in OTP Verification|Concurrent OTP submissions¦same OTP used twice in parallel|Atomic validation
+#AU-SES|5|web|Session Management
+AUTH-67|Session Fixation|Session ID unchanged after login¦pre-auth token accepted post-login|New session ID issued on login
+AUTH-68|Cookie Attributes|Secure missing¦HttpOnly missing¦SameSite missing/None¦Domain too broad¦Path too broad|All flags set correctly
+AUTH-69|Session Token Entropy|Sequential tokens¦predictable pattern¦short length¦encoded user data|≥128 bits entropy, random
+AUTH-70|Session in URL|;jsessionid=¦token in query string¦token in GET parameter|Session not in URL
+AUTH-71|Logout Completeness|Old session token still valid after logout¦token reusable|Server-side invalidation
+AUTH-72|Session Timeout|No idle timeout¦no absolute timeout¦timeout too long|Idle/absolute timeout enforced
+AUTH-73|Concurrent Sessions|Multiple logins allowed without limit¦old sessions not invalidated|Policy enforced
+AUTH-74|Session After Password Change|Other sessions remain valid after password change|All sessions invalidated
+AUTH-75|JWT-Specific (if used)|alg:none¦RS256→HS256 confusion¦weak HMAC secret¦kid injection¦claim tampering (role, sub)¦expired token accepted|Signature verified, claims validated, expiry enforced
+AUTH-76|Session Puzzling|Session variable overwrite across modules¦shared session namespace|Session isolation`;
 
 const SUITES = [];
 RAW.split("\n").forEach(line => {
@@ -441,7 +674,7 @@ async function loadTargetProject() {
 
     document.getElementById('tbtn-name').textContent = proj.name;
     document.getElementById('side-target-name').textContent = proj.name;
-    
+
     const assets = Array.isArray(proj.assets) ? proj.assets : [];
     const firstUrl = assets[0]?.value || 'https://target-asset.local';
     document.getElementById('side-target-url').textContent = firstUrl;
