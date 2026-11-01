@@ -1,0 +1,1104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Perimeter Zero · Pentest Checklist & Findings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  color-scheme:dark;
+  --topH:64px;
+  --bg:#04070d;--surface:rgba(9,17,29,.85);--surface-2:rgba(18,32,52,.75);
+  --ink:#e8fff6;--muted:#86a2b6;--line:rgba(60,230,200,.16);
+  --brand:#22d3ee;--brand-soft:rgba(34,211,238,.13);--on-brand:#021018;--focus:#67e8f9;
+  --pass:#3dffa0;--pass-soft:rgba(61,255,160,.11);--fail:#ff4d6d;--fail-soft:rgba(255,77,109,.13);
+  --na:#8aa0b8;--na-soft:rgba(138,160,184,.18);--on-solid:#03120b;
+  --band-1:#06131f;--band-2:#0a2c3c;--band-ink:#eafff6;--band-muted:#8fb9c7;--band-line:rgba(103,232,249,.22);
+  --shadow:0 0 0 1px rgba(34,211,238,.04),0 18px 44px -22px rgba(0,0,0,.9);
+  --tbs:55%;--tbl:18%;--tfs:95%;--tfl:72%;
+  --sev-c:#ff9aa8;--sev-c-bg:rgba(255,77,109,.18);--sev-h:#ffb07a;--sev-h-bg:rgba(255,140,60,.17);
+  --sev-m:#ffd75e;--sev-m-bg:rgba(255,205,60,.15);--sev-l:#8fc2ff;--sev-l-bg:rgba(80,140,255,.17);
+  --sev-i:#a5b4c9;--sev-i-bg:rgba(150,170,200,.15);
+  --font-display:"Bricolage Grotesque","Figtree",system-ui,sans-serif;
+  --font-ui:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:60px}
+#fx{position:fixed;inset:0;width:100%;height:100%;z-index:0;opacity:.28;pointer-events:none}
+body::after{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,transparent 35%,rgba(0,0,0,.7) 100%),repeating-linear-gradient(0deg,rgba(255,255,255,.02) 0 1px,transparent 1px 3px)}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+h1,h2,h3,h4{font-family:var(--font-display);text-wrap:balance;margin:0}
+
+/* Top bar */
+.top{position:sticky;top:0;z-index:50;background:rgba(4,9,16,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1400px;margin:0 auto;height:var(--topH);display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:9px;font-family:var(--font-display);font-weight:800;font-size:1.05rem;letter-spacing:.05em;text-transform:uppercase}
+.brand svg{flex:none;color:var(--brand);filter:drop-shadow(0 0 6px rgba(34,211,238,.7))}
+.brand small{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.16em;color:var(--brand);border:1px solid var(--line);border-radius:6px;padding:2px 6px;margin-left:6px}
+.tbtn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;border:1.5px solid var(--line);background:var(--surface-2);border-radius:10px;padding:5px 12px;max-width:240px;text-align:left}
+.tbtn:hover{border-color:var(--brand)}
+.tbtn .l{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);line-height:1}
+.tbtn .n{font-weight:700;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.search{flex:1;min-width:0;max-width:440px;position:relative;margin-left:auto}
+.search input[type=text]{width:100%;height:38px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);padding:0 36px 0 38px}
+.search input[type=text]:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+.search input[type=text]::placeholder{color:var(--muted);opacity:.8}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.search .clr{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:var(--muted);width:24px;height:24px;cursor:pointer}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--line);background:rgba(4,10,18,.55);color:var(--ink);border-radius:10px;padding:8px 14px;font-weight:700;font-size:.85rem;transition:all .15s;white-space:nowrap}
+.btn:hover{border-color:var(--brand);background:rgba(34,211,238,.08)}
+.btn.primary{background:linear-gradient(90deg,#22d3ee,#3dffa0);border-color:transparent;color:#02131a}
+.btn.primary:hover{filter:brightness(1.1);box-shadow:0 0 20px -4px rgba(34,211,238,.6)}
+.btn.sm{padding:6px 11px;font-size:.8rem}
+.btn svg{width:15px;height:15px;flex:none}
+
+/* Shell & Layout */
+.shell{position:relative;z-index:2;max-width:1400px;margin:0 auto;padding-top:22px;display:grid;grid-template-columns:300px minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:980px){.shell{grid-template-columns:minmax(0,1fr)}}
+.side{position:sticky;top:calc(var(--topH) + 16px);max-height:calc(100vh - var(--topH) - 32px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px;backdrop-filter:blur(10px)}
+@media (max-width:980px){.side{position:static;max-height:none}}
+.side h4{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.sync-badge{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:.72rem;color:var(--muted);padding:4px 8px;border-radius:6px;background:rgba(4,10,18,.5)}
+.sync-badge i{width:6px;height:6px;border-radius:50%;background:var(--pass);box-shadow:0 0 6px var(--pass)}
+.main{min-width:0;display:flex;flex-direction:column;gap:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);backdrop-filter:blur(10px)}
+
+/* Band Hero */
+.band{border:1px solid var(--band-line);border-radius:18px;position:relative;overflow:hidden;background:radial-gradient(520px 260px at 100% 0%,rgba(34,211,238,.24),transparent 65%),linear-gradient(135deg,rgba(6,19,31,.92),rgba(10,44,60,.88));box-shadow:0 0 50px -14px rgba(34,211,238,.4),var(--shadow);padding:26px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:24px;align-items:center}
+@media (max-width:680px){.band{grid-template-columns:minmax(0,1fr)}}
+.ring{position:relative;width:130px;height:130px;flex:none}
+.ring svg{display:block;transform:rotate(-90deg)}
+.ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .c b{font-family:var(--font-display);font-size:2rem;font-weight:800;line-height:1}
+.ring .c span{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
+.band h1{font-size:clamp(1.5rem,3vw,2.2rem);line-height:1.1;font-weight:800;letter-spacing:-.015em}
+.band .url{display:inline-block;margin-top:4px;color:var(--brand);font-family:var(--font-mono);font-size:.82rem;text-decoration:none}
+.band .url:hover{text-decoration:underline}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.chip{display:inline-flex;align-items:center;border-radius:999px;padding:3px 11px;font-size:.72rem;font-weight:700;font-family:var(--font-mono);background:rgba(255,255,255,.1);color:#fff;border:1px solid var(--band-line)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px}
+@media (max-width:640px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stat{border:1px solid var(--band-line);background:rgba(4,10,18,.45);border-radius:10px;padding:8px 12px}
+.stat b{display:block;font-family:var(--font-display);font-size:1.4rem;font-weight:800;line-height:1.1}
+.stat span{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--muted)}
+.stat i{width:8px;height:8px;border-radius:2px;display:block}
+.band .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+
+/* Category Map */
+.ph{margin:18px 0 10px;display:flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.ph::after{content:"";height:1px;background:var(--line);flex:1}
+.ph i{width:8px;height:8px;border-radius:2px;background:hsl(var(--h) 70% 55%)}
+.map{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.mt{display:flex;flex-direction:column;gap:8px;text-align:left;border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:12px;transition:all .15s}
+.mt:hover{transform:translateY(-2px);border-color:var(--brand);box-shadow:0 0 0 1px var(--brand),0 10px 24px -10px rgba(34,211,238,.4)}
+.mt .r1{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mt .tile{font-family:var(--font-mono);font-size:.7rem;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--brand-soft);color:var(--brand)}
+.mt .nm{font-weight:700;font-size:.85rem;line-height:1.25;min-height:2.4em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mt .r3{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:.7rem;color:var(--muted)}
+.bar{display:flex;overflow:hidden;border-radius:3px;background:var(--na-soft);height:5px}
+.bar i{display:block;height:100%}
+.bar .p{background:var(--pass)}.bar .f{background:var(--fail)}.bar .n{background:var(--na)}
+
+/* Category Header */
+.chead{display:flex;flex-direction:column;gap:14px}
+.chead .r1{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.chead .tile{height:36px;min-width:54px;font-size:.85rem;border-radius:10px;font-family:var(--font-mono);font-weight:800;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand)}
+.chead h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:800;letter-spacing:-.015em}
+.chead .eb{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.chead .grow{flex:1;min-width:200px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.fchips{display:flex;gap:6px;flex-wrap:wrap}
+.fc{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 11px;font-size:.8rem;font-weight:700;color:var(--muted)}
+.fc em{font-style:normal;font-family:var(--font-mono);font-size:.72rem}
+.fc:hover{border-color:var(--muted);color:var(--ink)}
+.fc[aria-pressed="true"]{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
+
+/* Test Cards */
+.cards{display:flex;flex-direction:column;gap:12px}
+.tc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 18px;box-shadow:var(--shadow);transition:border-color .15s}
+.tc[data-s="pass"]{background:linear-gradient(100deg,var(--pass-soft),var(--surface) 60%)}
+.tc[data-s="fail"]{background:linear-gradient(100deg,var(--fail-soft),var(--surface) 60%)}
+.tc:hover{border-color:rgba(34,211,238,.35)}
+.tc-main{min-width:0;display:flex;flex-direction:column;gap:8px}
+.tc-h{display:flex;gap:10px;align-items:flex-start}
+.si{flex:none;width:24px;height:24px;margin-top:1px}
+.tid{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-family:var(--font-mono);font-size:.7rem;color:var(--muted)}
+.tc h3{font-size:1.05rem;font-weight:700;line-height:1.25}
+.vars{display:flex;flex-wrap:wrap;gap:5px;margin:0;padding:0;list-style:none}
+.vars li{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:.8rem;color:var(--muted)}
+.verify{margin:0;font-size:.86rem;color:var(--muted)}
+.verify b{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--brand);margin-right:6px}
+.tc-act{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.seg{display:flex;gap:5px}
+.seg button{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 11px;font-size:.82rem;font-weight:700;color:var(--muted);transition:all .15s}
+.seg button svg{width:13px;height:13px}
+.seg button:hover{border-color:var(--muted);color:var(--ink)}
+.seg button[aria-pressed="true"][data-v="pass"]{background:var(--pass);border-color:var(--pass);color:#02131a}
+.seg button[aria-pressed="true"][data-v="fail"]{background:var(--fail);border-color:var(--fail);color:#fff}
+.seg button[aria-pressed="true"][data-v="na"]{background:var(--na);border-color:var(--na);color:#02131a}
+.sevpill{font-size:.65rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:999px;font-family:var(--font-mono)}
+.sevpill[data-v="C"]{color:var(--sev-c);background:var(--sev-c-bg)}
+.sevpill[data-v="H"]{color:var(--sev-h);background:var(--sev-h-bg)}
+.sevpill[data-v="M"]{color:var(--sev-m);background:var(--sev-m-bg)}
+.sevpill[data-v="L"]{color:var(--sev-l);background:var(--sev-l-bg)}
+.sevpill[data-v="I"]{color:var(--sev-i);background:var(--sev-i-bg)}
+.tc-notes{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr);gap:10px;padding-top:12px;border-top:1px dashed var(--line)}
+.tc-notes .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.tc-notes label{font-family:var(--font-mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+textarea,input[type=text],select{background:rgba(4,10,18,.6);border:1.5px solid var(--line);border-radius:9px;padding:9px 12px;width:100%;color:var(--ink)}
+textarea{resize:vertical;min-height:72px;font-family:var(--font-mono);font-size:.82rem}
+textarea:focus,input:focus,select:focus{border-color:var(--brand);outline:none;box-shadow:0 0 0 3px var(--brand-soft)}
+.sevsel{width:auto;min-width:140px}
+.pager{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 22px;border-radius:999px;font-weight:700;font-size:.88rem;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,.5);display:flex;align-items:center;gap:10px;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.toast.ok{background:var(--pass);color:#02131a}.toast.err{background:var(--fail);color:#fff}
+</style>
+</head>
+<body>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<div class="top">
+  <div class="top-in gut">
+    <div class="brand">
+      <svg width="22" height="24" viewBox="0 0 16 18" fill="none"><path d="M8 1 2 3.6v5.1c0 3.5 2.5 6.4 6 7.8 3.5-1.4 6-4.3 6-7.8V3.6L8 1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m5.4 8.8 2 2 3.4-3.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Perimeter Zero<small>Checklist</small></span>
+    </div>
+
+    <div class="tbtn" id="tbtn">
+      <span class="l">Current Project</span>
+      <span class="n" id="tbtn-name">Loading...</span>
+    </div>
+
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.6" stroke="currentColor" stroke-width="1.6"/><path d="m10.5 10.5 3.2 3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <input type="text" id="q" placeholder="Search test cases & payloads..." autocomplete="off">
+      <button class="clr" id="qclr" onclick="clearSearch()" hidden>&times;</button>
+    </div>
+
+    <a href="/download-zip" class="btn sm" download style="color:var(--brand); border-color:rgba(34,211,238,.4);">
+      Download ZIP
+    </a>
+    <button class="btn sm" id="btn-back-dash" onclick="returnToDashboard()">
+      &larr; Dashboard
+    </button>
+    <button class="btn sm" onclick="savePdfReport()">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M8 2v8m0 0L5 7m3 3 3-3M3 13h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      PDF Report
+    </button>
+    <button class="btn sm" onclick="copyMarkdownReport()">Copy Report</button>
+  </div>
+</div>
+
+<div class="shell gut">
+  <aside class="side">
+    <div>
+      <h4>Engagement Target</h4>
+      <div style="font-weight:800; font-size:1.05rem; margin-top:4px;" id="side-target-name">Assigned Target</div>
+      <div style="font-family:var(--font-mono); font-size:.76rem; color:var(--muted); word-break:break-all;" id="side-target-url">---</div>
+      <div style="margin-top:8px;">
+        <span class="sync-badge"><i id="sync-dot"></i><span id="sync-text">Connected to Database</span></span>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--line); padding-top:14px;">
+      <h4>Navigation</h4>
+      <button class="btn sm" style="width:100%; justify-content:flex-start; margin-top:6px;" onclick="goView('overview')">
+        Test Map & Overview
+      </button>
+      <button class="btn sm" style="width:100%; justify-content:flex-start; margin-top:6px;" onclick="goView('findings')">
+        Findings & Vulnerabilities (<span id="side-fail-count">0</span>)
+      </button>
+    </div>
+
+    <div style="border-top:1px solid var(--line); padding-top:14px;">
+      <h4>Scope Details</h4>
+      <p style="font-size:.82rem; color:var(--muted); margin:4px 0 0;" id="side-scope-notes">Loading assigned scope...</p>
+    </div>
+  </aside>
+
+  <main class="main" id="main-area">
+    <div id="vh"></div>
+    <div id="vb"></div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+/* ---------- Auth & Token ---------- */
+const token = localStorage.getItem('pz_token');
+const userStr = localStorage.getItem('pz_user') || localStorage.getItem('pz_session');
+const user = userStr ? JSON.parse(userStr) : null;
+
+if (!token || !user) {
+  window.location.href = 'signin-register.html';
+}
+
+function returnToDashboard() {
+  if (user && user.role === 'company') {
+    window.location.href = 'admin-dashboard.html';
+  } else {
+    window.location.href = 'tester-dashboard.html';
+  }
+}
+
+function api(path, options = {}) {
+  const headers = options.headers || {};
+  headers['Authorization'] = `Bearer ${token}`;
+  if (options.body && typeof options.body === 'object') {
+    headers['Content-Type'] = 'application/json';
+    options.body = JSON.stringify(options.body);
+  }
+  options.headers = headers;
+  return fetch(path, options).then(async res => {
+    if (res.status === 401) {
+      localStorage.removeItem('pz_token');
+      window.location.href = 'signin-register.html';
+      throw new Error('Unauthorized');
+    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'API call failed');
+    return data;
+  });
+}
+
+/* ---------- Test Suite Definition ---------- */
+const PARTS = {
+  1: "Part 1 · Web application (OWASP Top 10:2021)",
+  2: "Part 2 · API security (OWASP API Top 10:2023)",
+  3: "Part 3 · Lifecycle, login to logout",
+  4: "Part 4 · Supplementary Attack Vectors",
+  5: "Part 5 · Authentication & Session Lifecycle"
+};
+const PART_SHORT = {
+  1: "Web · OWASP Top 10",
+  2: "API · OWASP API Top 10",
+  3: "Lifecycle",
+  4: "Supplementary",
+  5: "Auth Lifecycle"
+};
+const PART_HUE = { 1: 218, 2: 176, 3: 36, 4: 272, 5: 340 };
+
+const RAW = `#A01|1|web|Broken Access Control
+T-001|Vertical Privilege Escalation|Admin panel access¦API admin endpoint¦role tampering in JWT/cookie¦hidden function URL|Low-priv user blocked from high-priv functions
+T-002|Horizontal Privilege Escalation (IDOR)|User ID¦order ID¦invoice ID¦file ID¦GUID tampering¦nested object ID|Cannot access other users' resources
+T-003|HTTP Method Tampering|GET↔POST¦PUT¦DELETE¦PATCH¦X-HTTP-Method-Override¦X-Original-URL¦X-Rewrite-URL|Method-based ACL enforced
+T-004|Path Traversal Bypass|Encoded dot-dot sequences¦backslash variants¦nested and overlong sequences¦case variation¦double encoding¦null byte|No ACL bypass via path tricks
+T-005|Forced Browsing|Backup pages¦debug pages¦/admin¦/console¦/actuator¦.old¦.bak|Hidden pages require auth
+T-006|CORS Misconfiguration|Origin reflection¦null origin¦wildcard + credentials¦subdomain trust|Only trusted origins allowed
+T-007|Referer-based Access Control Bypass|Spoofed Referer header¦missing Referer|No Referer-only checks
+T-008|Directory Traversal (File Read)|Unix and Windows system file reads¦encoded variants|No arbitrary file read
+#A02|1|web|Cryptographic Failures
+T-009|Transmission Encryption|HTTP access¦mixed content¦HSTS missing¦weak redirect|All sensitive traffic over HTTPS
+T-010|Weak TLS Configuration|SSLv3¦TLS 1.0/1.1¦weak ciphers¦expired cert¦hostname mismatch¦BEAST/POODLE|Strong TLS only
+T-011|Password Storage|Plaintext¦MD5¦SHA1¦unsalted hash¦weak bcrypt cost|Strong salted KDF
+T-012|Sensitive Data in Client Storage|localStorage¦sessionStorage¦IndexedDB¦cookies (no HttpOnly)|No secrets client-side
+T-013|Cache Control|Cache-Control¦Pragma¦Expires on sensitive pages|no-store on sensitive pages
+T-014|Hardcoded Secrets|JS files¦source maps¦config endpoints¦git history|No keys/passwords in code
+#A03|1|web|Injection
+T-015|SQL Injection|Error-based¦boolean-blind¦time-blind¦UNION¦stacked¦out-of-band¦WAF bypass¦second-order|No SQLi
+T-016|Reflected XSS|GET param¦POST param¦header reflection¦JSON reflection¦script-scheme URI|Scripts escaped
+T-017|Stored XSS|Comments¦profile¦filename¦SVG upload¦PDF metadata¦log viewer|Persistent scripts neutralized
+T-018|DOM-based XSS|innerHTML¦document.write¦eval¦location.hash¦postMessage¦jQuery .html()|Safe DOM sinks
+T-019|Command Injection|Command separators and chaining operators¦command substitution¦blind (time/DNS)¦argument injection|No OS command exec
+T-020|LDAP Injection|Wildcard and filter-breaking input in login and search|No auth bypass / data leak
+T-021|XPath Injection|Tautology-based auth bypass¦node traversal|No auth bypass
+T-022|NoSQL Injection|Operator-object injection¦JavaScript clause injection¦regex operators|No auth bypass / data leak
+T-023|SSTI|Math-expression probes per engine family¦Freemarker/Velocity/Twig engines|No template exec
+T-024|HTTP Header Injection|Encoded line breaks in parameters¦response splitting¦header smuggling|No header injection
+T-025|CRLF Injection|Log injection¦redirect injection¦cookie injection|No CRLF injection
+T-026|ORM Injection|HQL¦JPQL¦DQL payloads|No ORM injection
+#A04|1|web|Insecure Design
+T-027|Negative Value Tampering|Negative qty¦negative price¦zero price¦decimal precision abuse|Total amount correct
+T-028|Multi-step Process Bypass|Skip payment¦skip verification¦direct final-step endpoint¦reorder steps|Steps enforced server-side
+T-029|Race Condition|Concurrent coupon claim¦withdrawal¦vote¦booking¦OTP use|No double-spend
+T-030|Business Logic Abuse|Coupon reuse¦refund abuse¦currency manipulation¦trial reset|Business rules enforced
+T-031|Missing Rate Limits (Business)|OTP send¦password reset¦order create¦invite|Throttling present
+T-032|Workflow State Tampering|Change status field (pending→paid)¦cancel-after-ship|State machine enforced
+#A05|1|web|Security Misconfiguration
+T-033|Default Credentials|admin/admin¦root/root¦tomcat/manager¦DB consoles|No defaults
+T-034|Directory Listing|/uploads/¦/backup/¦/logs/|Listing disabled
+T-035|Backup/Sensitive Files|.git/¦.svn/¦.env¦.DS_Store¦*.bak¦*.old¦*~¦web.config¦composer.lock|Not exposed
+T-036|Error Message Leakage|Stack trace¦SQL error¦path disclosure¦debug mode|Generic errors only
+T-037|Unnecessary HTTP Methods|PUT¦DELETE¦TRACE¦OPTIONS¦CONNECT|Only required methods
+T-038|Security Headers Missing|CSP¦X-Frame-Options¦X-Content-Type-Options¦Referrer-Policy¦Permissions-Policy¦HSTS|Headers present
+T-039|Clickjacking|iframe embed¦frame-busting bypass¦drag-drop|Framing blocked
+T-040|Cross-domain Policy Files|crossdomain.xml¦clientaccesspolicy.xml|Restrictive
+T-041|Default Sample Apps|/examples/¦/docs/¦/test/¦/phpinfo.php|Removed
+T-042|HTTP Parameter Pollution|Duplicate params¦array params¦; separator|Consistent parsing
+#API1|2|api|Broken Object Level Authorization
+T-070|IDOR on API|Replace userId¦orderId¦accountId¦UUID¦nested object|Cannot access others' data
+T-071|Nested Object Traversal|/users/1/orders/2 → /users/2/orders/2|Ownership checked at each level
+T-072|Batch/Bulk Endpoint BOLA|/api/users?ids=1,2,3|Filtered by owner
+#API2|2|api|Broken Authentication
+T-073|JWT none Algorithm|alg:none¦remove signature|Rejected
+T-074|JWT Key Confusion|RS256→HS256 with public key as HMAC secret|Rejected
+T-075|JWT Expiry/Revocation|Expired¦revoked¦logout token reuse|Rejected
+T-076|JWT Claim Tampering|role¦sub¦iss¦aud¦kid injection|Verified
+T-077|API Key Leakage|URL¦Referer¦JS¦logs¦git|Not leaked
+#API3|2|api|Broken Object Property Level Authorization
+T-080|Mass Assignment|role¦isAdmin¦balance¦price¦verified in JSON|Ignored
+T-081|Excessive Data Exposure|passwordHash¦internalNotes¦PII in list/detail|Filtered by schema
+#API4|2|api|Unrestricted Resource Consumption
+T-083|Rate Limit Missing|Login¦SMS¦order¦search|429 returned
+T-084|Pagination Abuse|limit=999999¦cursor manipulation¦offset overflow|Capped
+T-085|GraphQL Complexity|Deep nesting¦recursive fragments¦aliases|Depth/complexity limit
+#AU-LOG|5|web|Authentication & Login
+AUTH-01|Credential Transport Encryption|HTTP login endpoint¦mixed content¦HSTS missing¦weak redirect|Credentials only transmitted over HTTPS
+AUTH-02|Default Credentials|admin/admin¦admin/password¦root/root¦tomcat/tomcat¦test/test|Default accounts disabled
+AUTH-03|Weak Lockout Mechanism|No lockout¦lockout bypass via IP rotation|Effective lockout or rate limit
+AUTH-04|Username Enumeration|Response difference¦timing difference¦registration leakage|Generic error messages for login failures
+AUTH-05|SQL Injection in Login|Classic tautology injection¦comment-terminated username|Authentication bypass prevented
+AUTH-06|Auth Schema Bypass|Direct access to authenticated pages¦forced browsing¦cookie tampering|Server-side auth check on every request
+AUTH-07|Remember Me Token|Predictable token¦long-lived token¦no rotation|Secure random, rotated token
+AUTH-52|2FA Bypass via Response Manipulation|Flip verified:false→true¦mfa_required:true→false|Server-side enforcement
+AUTH-67|Session Fixation|Session ID unchanged after login|New session ID issued on login
+AUTH-68|Cookie Attributes|Secure missing¦HttpOnly missing¦SameSite missing|All flags set correctly`;
+
+const SUITES = [];
+RAW.split("\n").forEach(line => {
+  if (line[0] === "#") {
+    const [id, p, scope, name] = line.slice(1).split("|");
+    SUITES.push({ id, p: +p, part: PARTS[p], scope, name, tests: [] });
+  } else {
+    const [id, title, vars, verify] = line.split("|");
+    SUITES[SUITES.length - 1].tests.push([id, title, vars.split("¦"), verify]);
+  }
+});
+const IDX = {};
+SUITES.forEach(s => s.tests.forEach(x => { IDX[x[0]] = { s, x }; }));
+
+const SEV = { C: "Critical", H: "High", M: "Medium", L: "Low", I: "Info" };
+const SEV_ORDER = ["C", "H", "M", "L", "I"];
+const SEV_COL = { C: "var(--sev-c)", H: "var(--sev-h)", M: "var(--sev-m)", L: "var(--sev-l)", I: "var(--sev-i)", U: "var(--muted)" };
+
+/* ---------- Application State ---------- */
+let activeProject = null;
+let currentResults = {}; // test_id -> { s: 'pass'|'fail'|'na', v: 'C'|'H'|..., n: '', t: timestamp }
+let ui = {
+  view: "overview",
+  status: "all",
+  q: "",
+  notes: new Set(),
+  focus: null
+};
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function counts() {
+  const c = { total: 0, pass: 0, fail: 0, na: 0, untested: 0, failSev: { C: 0, H: 0, M: 0, L: 0, I: 0, U: 0 } };
+  SUITES.forEach(s => s.tests.forEach(x => {
+    c.total++;
+    const r = currentResults[x[0]];
+    if (r && r.s) {
+      c[r.s]++;
+      if (r.s === "fail") c.failSev[r.v && SEV[r.v] ? r.v : "U"]++;
+    } else {
+      c.untested++;
+    }
+  }));
+  return c;
+}
+
+const donePct = c => c.total ? Math.round((c.pass + c.fail + c.na) / c.total * 100) : 0;
+const wpct = (n, c) => (c.total ? n / c.total * 100 : 0).toFixed(1);
+
+function barHtml(c) {
+  return `<span class="bar"><i class="p" style="width:${wpct(c.pass, c)}%"></i><i class="f" style="width:${wpct(c.fail, c)}%"></i><i class="n" style="width:${wpct(c.na, c)}%"></i></span>`;
+}
+
+function statusIcon(s) {
+  if (s === "pass") return '<svg class="si" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="var(--pass)"/><path d="m7 12.5 3.2 3.2L17 8.8" fill="none" stroke="var(--on-solid)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  if (s === "fail") return '<svg class="si" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="var(--fail)"/><path d="m8.5 8.5 7 7m0-7-7 7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>';
+  if (s === "na") return '<svg class="si" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="var(--na)"/><path d="M7.5 12h9" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>';
+  return '<svg class="si" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.2" fill="none" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>';
+}
+
+/* ---------- Load Real Project & Results from API ---------- */
+async function loadTargetProject() {
+  const params = new URLSearchParams(window.location.search);
+  let pId = params.get('projectId');
+
+  try {
+    if (!pId) {
+      // If no ID passed, fetch tester's active projects or company projects
+      const endpoint = user.role === 'company' ? '/api/projects/company' : '/api/projects/active';
+      const projs = await api(endpoint);
+      if (projs && projs.length > 0) {
+        pId = projs[0].id;
+      } else {
+        renderNoProjectAssigned();
+        return;
+      }
+    }
+
+    const proj = await api(`/api/projects/${pId}`);
+    activeProject = proj;
+
+    document.getElementById('tbtn-name').textContent = proj.name;
+    document.getElementById('side-target-name').textContent = proj.name;
+    
+    const assets = Array.isArray(proj.assets) ? proj.assets : [];
+    const firstUrl = assets[0]?.value || 'https://target-asset.local';
+    document.getElementById('side-target-url').textContent = firstUrl;
+    document.getElementById('side-scope-notes').textContent = proj.description || `Assigned to pentester. Assets in scope: ${assets.map(a => a.value).join(', ')}`;
+
+    // Load real test results from database!
+    try {
+      const dbResults = await api(`/api/projects/${pId}/results`);
+      currentResults = {};
+      if (Array.isArray(dbResults)) {
+        dbResults.forEach(r => {
+          if (r.test_id) {
+            currentResults[r.test_id] = {
+              s: r.status,
+              v: r.severity || '',
+              n: r.notes || '',
+              t: r.updated_at ? new Date(r.updated_at).getTime() : Date.now()
+            };
+          }
+        });
+      }
+    } catch (e) {
+      console.warn('Results fetch error:', e);
+      currentResults = {};
+    }
+
+    renderAll();
+  } catch (err) {
+    showToast(err.message, 'err');
+    renderNoProjectAssigned();
+  }
+}
+
+function renderNoProjectAssigned() {
+  document.getElementById('main-area').innerHTML = `
+    <div class="card" style="text-align:center; padding:48px 24px;">
+      <h2>No Assigned Project Selected</h2>
+      <p style="color:var(--muted); max-width:500px; margin:10px auto 20px;">
+        To open this pentest checklist, an engagement must be accepted by the company owner and started by the pentester.
+      </p>
+      <button class="btn primary" onclick="returnToDashboard()">&larr; Return to Dashboard</button>
+    </div>
+  `;
+}
+
+/* ---------- Persistence to API ---------- */
+let syncTimer = null;
+function persistResults() {
+  if (!activeProject) return;
+  document.getElementById('sync-text').textContent = 'Syncing with database...';
+  document.getElementById('sync-dot').style.background = 'var(--warn)';
+
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(async () => {
+    try {
+      const payload = Object.entries(currentResults).map(([id, r]) => ({
+        test_id: id,
+        status: r.s || null,
+        severity: r.v || null,
+        notes: r.n || null
+      }));
+
+      await api(`/api/projects/${activeProject.id}/results`, {
+        method: 'PUT',
+        body: { results: payload }
+      });
+
+      document.getElementById('sync-text').textContent = 'Saved to Database';
+      document.getElementById('sync-dot').style.background = 'var(--pass)';
+    } catch (err) {
+      document.getElementById('sync-text').textContent = 'Sync error (local cache active)';
+      document.getElementById('sync-dot').style.background = 'var(--fail)';
+    }
+  }, 600);
+}
+
+/* ---------- Rendering Views ---------- */
+function renderAll() {
+  if (!activeProject) return;
+  const c = counts();
+  document.getElementById('side-fail-count').textContent = c.fail;
+
+  const vh = document.getElementById('vh');
+  const vb = document.getElementById('vb');
+
+  if (ui.q) {
+    renderSearch(vh, vb);
+    return;
+  }
+
+  if (ui.view === "overview") {
+    renderOverview(vh, vb, c);
+  } else if (ui.view === "findings") {
+    renderFindings(vh, vb, c);
+  } else {
+    renderCategory(vh, vb, c);
+  }
+}
+
+function renderOverview(vh, vb, c) {
+  const assets = Array.isArray(activeProject.assets) ? activeProject.assets : [];
+  const primaryUrl = assets[0]?.value || 'https://target.local';
+
+  vh.innerHTML = `
+    <section class="band">
+      <div class="ring">
+        <svg width="130" height="130" viewBox="0 0 130 130">
+          <circle cx="65" cy="65" r="50" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="12"/>
+          <circle cx="65" cy="65" r="50" fill="none" stroke="#22d3ee" stroke-width="12"
+            stroke-dasharray="${(donePct(c) * 3.14).toFixed(1)} 314" />
+        </svg>
+        <div class="c"><b>${donePct(c)}%</b><span>complete</span></div>
+      </div>
+      <div>
+        <h1>${esc(activeProject.name)}</h1>
+        <a class="url" href="${esc(primaryUrl)}" target="_blank" rel="noopener noreferrer">${esc(primaryUrl)}</a>
+        <div class="chips">
+          <span class="chip">Client: ${esc(activeProject.company_name || 'Owner')}</span>
+          <span class="chip">Status: ${activeProject.status.replace('_', ' ')}</span>
+          <span class="chip">${c.total} OWASP Tests Armed</span>
+          <span class="chip">$${Number(activeProject.price || 0).toLocaleString()} Bounty</span>
+        </div>
+        <p style="margin:10px 0 0; color:var(--muted); font-size:.88rem;">${esc(activeProject.description || 'Target engagement verified.')}</p>
+        <div class="stats">
+          <div class="stat"><b>${c.pass}</b><span><i style="background:var(--pass)"></i>Passed</span></div>
+          <div class="stat"><b>${c.fail}</b><span><i style="background:var(--fail)"></i>Failed</span></div>
+          <div class="stat"><b>${c.na}</b><span><i style="background:var(--na)"></i>N/A</span></div>
+          <div class="stat"><b>${c.untested}</b><span><i style="background:rgba(255,255,255,.3)"></i>To Do</span></div>
+        </div>
+        <div class="acts">
+          <button class="btn primary" onclick="startNextUntested()">Execute Tests &rarr;</button>
+          <button class="btn" onclick="goView('findings')">View Findings (${c.fail})</button>
+          <button class="btn" onclick="savePdfReport()">Download PDF</button>
+        </div>
+      </div>
+    </section>
+  `;
+
+  let mapHtml = '';
+  [1, 2, 3, 4, 5].forEach(p => {
+    const list = SUITES.filter(s => s.p === p);
+    if (!list.length) return;
+    mapHtml += `
+      <h3 class="ph" style="--h:${PART_HUE[p]}"><i></i>${esc(PARTS[p])}</h3>
+      <div class="map">
+        ${list.map(s => {
+          let sPass = 0, sFail = 0, sNa = 0, sTot = s.tests.length;
+          s.tests.forEach(x => {
+            const r = currentResults[x[0]];
+            if (r?.s === 'pass') sPass++;
+            if (r?.s === 'fail') sFail++;
+            if (r?.s === 'na') sNa++;
+          });
+          const done = sPass + sFail + sNa;
+          const sC = { pass: sPass, fail: sFail, na: sNa, total: sTot };
+
+          return `
+            <button class="mt" onclick="goCategory('${s.id}')">
+              <div class="r1">
+                <span class="tile">${s.id}</span>
+                ${sFail ? `<span style="color:var(--fail); font-family:var(--font-mono); font-size:.7rem; font-weight:800;">${sFail} Fail</span>` : ''}
+              </div>
+              <span class="nm">${esc(s.name)}</span>
+              ${barHtml(sC)}
+              <div class="r3">
+                <span>${done}/${sTot}</span>
+                <span>${donePct(sC)}%</span>
+              </div>
+            </button>
+          `;
+        }).join('')}
+      </div>
+    `;
+  });
+
+  vb.innerHTML = `
+    <section>
+      <h2>OWASP Assessment Matrix</h2>
+      <p style="color:var(--muted); font-size:.88rem; margin:4px 0 16px;">Select a category to audit specific vulnerabilities and record proof-of-concept evidence.</p>
+      ${mapHtml}
+    </section>
+  `;
+}
+
+function renderCategory(vh, vb, c) {
+  const s = SUITES.find(z => z.id === ui.view);
+  if (!s) return goView('overview');
+
+  let sPass = 0, sFail = 0, sNa = 0, sTot = s.tests.length;
+  s.tests.forEach(x => {
+    const r = currentResults[x[0]];
+    if (r?.s === 'pass') sPass++;
+    if (r?.s === 'fail') sFail++;
+    if (r?.s === 'na') sNa++;
+  });
+  const done = sPass + sFail + sNa;
+  const sC = { pass: sPass, fail: sFail, na: sNa, total: sTot };
+
+  vh.innerHTML = `
+    <div class="card chead">
+      <button class="btn sm" style="align-self:flex-start" onclick="goView('overview')">&larr; Back to Test Map</button>
+      <div class="r1">
+        <span class="tile">${s.id}</span>
+        <div class="grow">
+          <div class="eb">${esc(PART_SHORT[s.p])}</div>
+          <h1>${esc(s.name)}</h1>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; font-family:var(--font-mono); font-size:.78rem; color:var(--muted);">
+        <span><b>${done}</b> of ${sTot} audited${sFail ? ` · <b style="color:var(--fail)">${sFail} failed</b>` : ''}</span>
+        <div style="flex:1;">${barHtml(sC)}</div>
+        <span>${donePct(sC)}%</span>
+      </div>
+      <div class="toolbar">
+        ${chipsHtml(sC)}
+      </div>
+    </div>
+  `;
+
+  let list = s.tests;
+  if (ui.status !== 'all') {
+    list = list.filter(x => {
+      const r = currentResults[x[0]];
+      const st = r && r.s ? r.s : 'untested';
+      return st === ui.status;
+    });
+  }
+
+  vb.innerHTML = list.length ? `
+    <div class="cards">
+      ${list.map(x => cardHtml(s, x)).join('')}
+    </div>
+  ` : `
+    <div class="card" style="text-align:center; padding:36px; color:var(--muted);">
+      No test cases match the "${ui.status}" filter.
+    </div>
+  `;
+}
+
+function renderFindings(vh, vb, c) {
+  vh.innerHTML = `
+    <div class="card chead">
+      <button class="btn sm" style="align-self:flex-start" onclick="goView('overview')">&larr; Back to Test Map</button>
+      <div class="r1">
+        <div class="grow">
+          <div class="eb">Engagement Findings</div>
+          <h1>Security Vulnerabilities (${c.fail})</h1>
+        </div>
+        <div class="toolbar">
+          <button class="btn primary sm" onclick="savePdfReport()">Download Report PDF</button>
+          <button class="btn sm" onclick="copyMarkdownReport()">Copy Markdown</button>
+        </div>
+      </div>
+      <p style="color:var(--muted); font-size:.88rem; margin:0;">
+        Vulnerabilities identified during penetration testing against ${esc(activeProject.name)}.
+      </p>
+    </div>
+  `;
+
+  const fails = [];
+  SUITES.forEach(s => s.tests.forEach(x => {
+    const r = currentResults[x[0]];
+    if (r && r.s === 'fail') fails.push({ s, x, r });
+  }));
+
+  const rank = k => { const i = SEV_ORDER.indexOf(k); return i < 0 ? 99 : i; };
+  fails.sort((a, b) => rank(a.r.v) - rank(b.r.v));
+
+  vb.innerHTML = fails.length ? `
+    <div class="cards">
+      ${fails.map(({ s, x }) => cardHtml(s, x, true)).join('')}
+    </div>
+  ` : `
+    <div class="card" style="text-align:center; padding:44px; color:var(--muted);">
+      <h3>No Vulnerabilities Recorded</h3>
+      <p>When you mark a test case as "Fail", it will appear here with its severity rating and PoC notes.</p>
+    </div>
+  `;
+}
+
+function renderSearch(vh, vb) {
+  const query = ui.q.toLowerCase();
+  const matches = [];
+
+  SUITES.forEach(s => s.tests.forEach(x => {
+    if (x[0].toLowerCase().includes(query) ||
+        x[1].toLowerCase().includes(query) ||
+        x[2].join(' ').toLowerCase().includes(query) ||
+        x[3].toLowerCase().includes(query) ||
+        s.name.toLowerCase().includes(query)) {
+      matches.push({ s, x });
+    }
+  }));
+
+  vh.innerHTML = `
+    <div class="card chead">
+      <div class="r1">
+        <div class="grow">
+          <div class="eb">Search Results</div>
+          <h1>${matches.length} matches for "${esc(ui.q)}"</h1>
+        </div>
+        <button class="btn sm" onclick="clearSearch()">Clear Search</button>
+      </div>
+    </div>
+  `;
+
+  vb.innerHTML = matches.length ? `
+    <div class="cards">
+      ${matches.map(({ s, x }) => cardHtml(s, x, true)).join('')}
+    </div>
+  ` : `
+    <div class="card" style="text-align:center; padding:36px; color:var(--muted);">
+      No test cases matched your query.
+    </div>
+  `;
+}
+
+function chipsHtml(sC) {
+  return `
+    <div class="fchips">
+      <button class="fc" onclick="setStatusFilter('all')" aria-pressed="${ui.status==='all'}">All <em>${sC.total}</em></button>
+      <button class="fc" onclick="setStatusFilter('untested')" aria-pressed="${ui.status==='untested'}">To Do <em>${sC.total - sC.pass - sC.fail - sC.na}</em></button>
+      <button class="fc" onclick="setStatusFilter('pass')" aria-pressed="${ui.status==='pass'}">Pass <em>${sC.pass}</em></button>
+      <button class="fc" onclick="setStatusFilter('fail')" aria-pressed="${ui.status==='fail'}">Fail <em>${sC.fail}</em></button>
+      <button class="fc" onclick="setStatusFilter('na')" aria-pressed="${ui.status==='na'}">N/A <em>${sC.na}</em></button>
+    </div>
+  `;
+}
+
+function cardHtml(s, x, showCategory = false) {
+  const [id, title, vars, verify] = x;
+  const r = currentResults[id] || {};
+  const st = r.s || '';
+  const openNotes = ui.notes.has(id);
+
+  const sevPill = st === 'fail' && r.v && SEV[r.v] ? `<span class="sevpill" data-v="${r.v}">${SEV[r.v]}</span>` : '';
+  const catBadge = showCategory ? `<span style="color:var(--brand); font-family:var(--font-mono); font-size:.7rem;">${s.id} · ${esc(s.name)}</span>` : '';
+
+  const notesSection = openNotes ? `
+    <div class="tc-notes">
+      ${st === 'fail' ? `
+        <div class="row">
+          <label>Severity Rating:</label>
+          <select class="sevsel" onchange="setSeverity('${id}', this.value)">
+            <option value="">Select Severity...</option>
+            ${SEV_ORDER.map(k => `<option value="${k}" ${r.v === k ? 'selected' : ''}>${SEV[k]}</option>`).join('')}
+          </select>
+        </div>
+      ` : ''}
+      <div>
+        <label>Payloads, Verification Steps & Evidence:</label>
+        <textarea placeholder="e.g. Injected payload in header, response returned status 200 with leaked token..." oninput="setNotes('${id}', this.value)">${esc(r.n || '')}</textarea>
+      </div>
+    </div>
+  ` : '';
+
+  return `
+    <article class="tc" data-s="${st}" id="tc-${id}">
+      <div class="tc-main">
+        <div class="tc-h">
+          ${statusIcon(st)}
+          <div style="min-width:0;">
+            <div class="tid">
+              <span>${id}</span>
+              ${sevPill}
+              ${catBadge}
+            </div>
+            <h3>${esc(title)}</h3>
+          </div>
+        </div>
+        <ul class="vars">
+          ${vars.map(v => `<li>${esc(v)}</li>`).join('')}
+        </ul>
+        <p class="verify"><b>Expect:</b> ${esc(verify)}</p>
+        ${!openNotes && r.n ? `<p style="font-size:.82rem; color:var(--muted); font-style:italic; margin:4px 0 0;">"${esc(r.n.slice(0, 100))}${r.n.length > 100 ? '...' : ''}"</p>` : ''}
+      </div>
+
+      <div class="tc-act">
+        <div class="seg">
+          <button data-v="pass" aria-pressed="${st === 'pass'}" onclick="markTest('${id}', 'pass')">Pass</button>
+          <button data-v="fail" aria-pressed="${st === 'fail'}" onclick="markTest('${id}', 'fail')">Fail</button>
+          <button data-v="na" aria-pressed="${st === 'na'}" onclick="markTest('${id}', 'na')">N/A</button>
+        </div>
+        <button class="btn sm" onclick="toggleNotes('${id}')">
+          ${openNotes ? 'Close Notes' : (r.n ? 'Edit PoC' : '+ Add Evidence')}
+        </button>
+      </div>
+      ${notesSection}
+    </article>
+  `;
+}
+
+/* ---------- User Actions ---------- */
+function markTest(id, val) {
+  const cur = currentResults[id] || { s: '', v: '', n: '', t: 0 };
+  if (cur.s === val) {
+    cur.s = '';
+    cur.v = '';
+  } else {
+    cur.s = val;
+    cur.t = Date.now();
+    if (val === 'fail') {
+      ui.notes.add(id);
+      if (!cur.v) cur.v = 'M'; // Default medium severity
+    }
+  }
+  currentResults[id] = cur;
+  persistResults();
+  renderAll();
+}
+
+function setSeverity(id, sevVal) {
+  const cur = currentResults[id] || { s: 'fail', v: '', n: '', t: 0 };
+  cur.v = sevVal;
+  cur.t = Date.now();
+  currentResults[id] = cur;
+  persistResults();
+  renderAll();
+}
+
+function setNotes(id, textVal) {
+  const cur = currentResults[id] || { s: '', v: '', n: '', t: 0 };
+  cur.n = textVal;
+  cur.t = Date.now();
+  currentResults[id] = cur;
+  persistResults();
+}
+
+function toggleNotes(id) {
+  if (ui.notes.has(id)) {
+    ui.notes.delete(id);
+  } else {
+    ui.notes.add(id);
+  }
+  renderAll();
+}
+
+function goView(v) {
+  ui.view = v;
+  ui.status = 'all';
+  ui.q = '';
+  document.getElementById('q').value = '';
+  document.getElementById('qclr').hidden = true;
+  window.scrollTo({ top: 0 });
+  renderAll();
+}
+
+function goCategory(catId) {
+  ui.view = catId;
+  ui.status = 'all';
+  window.scrollTo({ top: 0 });
+  renderAll();
+}
+
+function setStatusFilter(filterVal) {
+  ui.status = filterVal;
+  renderAll();
+}
+
+function clearSearch() {
+  ui.q = '';
+  document.getElementById('q').value = '';
+  document.getElementById('qclr').hidden = true;
+  renderAll();
+}
+
+document.getElementById('q').addEventListener('input', e => {
+  ui.q = e.target.value.trim();
+  document.getElementById('qclr').hidden = !ui.q;
+  renderAll();
+});
+
+function startNextUntested() {
+  for (const s of SUITES) {
+    for (const x of s.tests) {
+      const r = currentResults[x[0]];
+      if (!r || !r.s) {
+        goCategory(s.id);
+        setTimeout(() => {
+          const el = document.getElementById(`tc-${x[0]}`);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+        return;
+      }
+    }
+  }
+  showToast('All armed tests have a recorded result!', 'ok');
+}
+
+/* ---------- Report Generation ---------- */
+function buildMarkdownReport() {
+  if (!activeProject) return '';
+  const c = counts();
+  const assets = Array.isArray(activeProject.assets) ? activeProject.assets : [];
+  let md = `# Penetration Testing Report: ${activeProject.name}\n\n`;
+  md += `**Client:** ${activeProject.company_name || 'Owner'}\n`;
+  md += `**Date:** ${new Date().toLocaleDateString()}\n`;
+  md += `**Scope Assets:**\n${assets.map(a => `- [${a.type || 'WEB'}] ${a.value}`).join('\n')}\n\n`;
+  md += `## Executive Summary\n- Passed: ${c.pass}\n- Failed (Vulnerabilities): ${c.fail}\n- N/A: ${c.na}\n- Completion: ${donePct(c)}%\n\n`;
+  md += `## Verified Findings\n\n`;
+
+  const fails = [];
+  SUITES.forEach(s => s.tests.forEach(x => {
+    const r = currentResults[x[0]];
+    if (r && r.s === 'fail') fails.push({ s, x, r });
+  }));
+
+  if (fails.length === 0) {
+    md += `No security vulnerabilities were identified in the verified scope.\n`;
+  } else {
+    fails.forEach(({ s, x, r }) => {
+      md += `### [${r.v && SEV[r.v] ? SEV[r.v].toUpperCase() : 'MEDIUM'}] ${x[0]} - ${x[1]}\n`;
+      md += `- **OWASP Category:** ${s.id} ${s.name}\n`;
+      md += `- **Variants Audited:** ${x[2].join(', ')}\n`;
+      md += `- **Expected Secure Behavior:** ${x[3]}\n`;
+      md += `- **PoC & Evidence:**\n> ${r.n ? r.n.replace(/\n/g, '\n> ') : 'Vulnerability confirmed.'}\n\n`;
+    });
+  }
+
+  return md;
+}
+
+function copyMarkdownReport() {
+  const md = buildMarkdownReport();
+  navigator.clipboard.writeText(md).then(() => {
+    showToast('Markdown report copied to clipboard!', 'ok');
+  }).catch(() => {
+    showToast('Failed to copy', 'err');
+  });
+}
+
+function savePdfReport() {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    return showToast('PDF generator loading...', 'err');
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const W = 595.28;
+  let y = 40;
+
+  doc.setFillColor(6, 19, 31);
+  doc.rect(0, 0, W, 90, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(34, 211, 238);
+  doc.text('PERIMETER ZERO · PENTEST REPORT', 40, 36);
+
+  doc.setFontSize(18);
+  doc.setTextColor(255, 255, 255);
+  doc.text(activeProject.name || 'Assessment Report', 40, 60);
+
+  doc.setFontSize(9);
+  doc.setTextColor(140, 160, 180);
+  doc.text(`Client: ${activeProject.company_name || 'Owner'} | Generated: ${new Date().toLocaleDateString()}`, 40, 78);
+
+  y = 120;
+  const c = counts();
+  doc.setFontSize(14);
+  doc.setTextColor(15, 26, 46);
+  doc.text('Executive Summary', 40, y);
+  y += 20;
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Total Tests: ${c.total}  |  Passed: ${c.pass}  |  Failed: ${c.fail}  |  N/A: ${c.na}  |  Audit Coverage: ${donePct(c)}%`, 40, y);
+  y += 30;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text('Identified Vulnerabilities', 40, y);
+  y += 20;
+
+  const fails = [];
+  SUITES.forEach(s => s.tests.forEach(x => {
+    const r = currentResults[x[0]];
+    if (r && r.s === 'fail') fails.push({ s, x, r });
+  }));
+
+  if (fails.length === 0) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text('No vulnerabilities were identified during this assessment.', 40, y);
+  } else {
+    fails.forEach(({ s, x, r }) => {
+      if (y > 750) {
+        doc.addPage();
+        y = 40;
+      }
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(214, 51, 63);
+      doc.text(`[${r.v || 'MED'}] ${x[0]} - ${x[1]}`, 40, y);
+      y += 14;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(80, 90, 110);
+      doc.text(`Category: ${s.id} ${s.name}`, 40, y);
+      y += 13;
+
+      if (r.n) {
+        doc.text(`Evidence: ${r.n.slice(0, 120)}`, 40, y);
+        y += 16;
+      }
+      y += 8;
+    });
+  }
+
+  doc.save(`${activeProject.name.replace(/[^a-zA-Z0-9]/g, '_')}_Pentest_Report.pdf`);
+  showToast('PDF Report downloaded!', 'ok');
+}
+
+/* Background canvas FX */
+(function fx() {
+  const cv = document.getElementById("fx");
+  if (!cv) return;
+  const cx = cv.getContext("2d");
+  const chars = "01<>/{}[]#$%&*+-=;:ABCDEF".split("");
+  const fs = 15;
+  let w, h, drops;
+  function size() {
+    w = cv.width = innerWidth;
+    h = cv.height = innerHeight;
+    drops = Array.from({ length: Math.ceil(w / fs) }, () => Math.floor(Math.random() * -30));
+  }
+  function draw() {
+    cx.fillStyle = "rgba(4,7,13,.1)";
+    cx.fillRect(0, 0, w, h);
+    cx.font = fs + "px 'JetBrains Mono',monospace";
+    for (let i = 0; i < drops.length; i++) {
+      const y = drops[i] * fs;
+      if (y > 0) {
+        cx.fillStyle = Math.random() > .97 ? "#e8fff6" : (i % 5 === 0 ? "#22d3ee" : "#3dffa0");
+        cx.fillText(chars[Math.floor(Math.random() * chars.length)], i * fs, y);
+      }
+      if (y > h && Math.random() > .98) drops[i] = 0;
+      drops[i]++;
+    }
+  }
+  size();
+  addEventListener("resize", size);
+  setInterval(draw, 60);
+})();
+
+let toastTimeout;
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show ${type}`;
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+loadTargetProject();
+</script>
+</body>
+</html>

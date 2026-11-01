@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Perimeter Zero · Pentester Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  color-scheme:dark;--bg:#04070d;--surface:rgba(9,17,29,.8);--surface-2:rgba(18,32,52,.72);
+  --ink:#e8fff6;--muted:#86a2b6;--line:rgba(60,230,200,.16);--brand:#22d3ee;--brand-soft:rgba(34,211,238,.13);
+  --on-brand:#021018;--focus:#67e8f9;--pass:#3dffa0;--pass-soft:rgba(61,255,160,.11);
+  --fail:#ff4d6d;--fail-soft:rgba(255,77,109,.13);--warn:#ffb07a;--warn-soft:rgba(255,176,122,.13);
+  --na:#8aa0b8;--shadow:0 0 0 1px rgba(34,211,238,.04),0 18px 44px -22px rgba(0,0,0,.9);
+  --font-display:"Bricolage Grotesque","Figtree",system-ui,sans-serif;
+  --font-ui:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;min-height:100vh}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}a{text-decoration:none;color:inherit}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(4,9,16,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1400px;margin:0 auto;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:800;letter-spacing:.05em}
+.brand svg{color:var(--brand);filter:drop-shadow(0 0 8px rgba(34,211,238,.8))}
+.brand small{font-family:var(--font-mono);font-size:.65rem;border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:var(--brand);margin-left:8px}
+.user-nav{display:flex;align-items:center;gap:20px;font-family:var(--font-mono);font-size:.78rem}
+.user-nav a{color:var(--muted);transition:color .2s}.user-nav a:hover{color:var(--brand)}
+.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--pass));display:grid;place-items:center;font-weight:800;color:#02131a;font-family:var(--font-display)}
+.app-layout{display:flex;flex:1;max-width:1400px;margin:0 auto;width:100%;position:relative;z-index:2}
+.sidebar{width:260px;flex:none;border-right:1px solid var(--line);padding:24px 16px;display:flex;flex-direction:column;gap:6px;background:rgba(4,9,16,.3)}
+@media (max-width:850px){.app-layout{flex-direction:column}.sidebar{width:100%;border-right:0;border-bottom:1px solid var(--line);flex-direction:row;flex-wrap:wrap;padding:12px}}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;font-weight:700;color:var(--muted);transition:all .2s;cursor:pointer;border:1.5px solid transparent}
+.nav-item:hover{background:rgba(34,211,238,.05);color:var(--ink)}
+.nav-item.active{background:var(--brand-soft);border-color:rgba(34,211,238,.3);color:var(--ink)}
+.nav-item svg{width:18px;height:18px;flex:none}
+.badge{margin-left:auto;background:var(--brand);color:#02131a;font-family:var(--font-mono);font-size:.68rem;padding:2px 8px;border-radius:99px;font-weight:800}
+.main-content{flex:1;padding:32px 40px;min-width:0;overflow-y:auto}
+@media (max-width:850px){.main-content{padding:24px 16px}}
+.view{display:none;animation:fade .25s ease}.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.page-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px;flex-wrap:wrap;gap:16px}
+.page-title h1{margin:0;font-family:var(--font-display);font-size:2rem;font-weight:800;letter-spacing:-.02em}
+.page-title p{margin:6px 0 0;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1.5px solid var(--line);background:rgba(4,10,18,.55);color:var(--ink);border-radius:10px;padding:9px 16px;font-weight:700;font-size:.85rem;transition:all .2s}
+.btn:hover{border-color:rgba(34,211,238,.45);background:rgba(34,211,238,.08)}
+.btn.primary{background:linear-gradient(90deg,#22d3ee,#3dffa0);border-color:transparent;color:#02131a}
+.btn.primary:hover{filter:brightness(1.1);box-shadow:0 0 20px -4px rgba(34,211,238,.6)}
+.btn.success{background:linear-gradient(90deg,#3dffa0,#67e8f9);border-color:transparent;color:#02131a}
+.btn.success:hover{filter:brightness(1.1);box-shadow:0 0 20px -4px rgba(61,255,160,.6)}
+.btn.sm{padding:6px 12px;font-size:.8rem}
+.list-grid{display:flex;flex-direction:column;gap:16px}
+.card{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:22px;gap:20px;flex-wrap:wrap;transition:all .2s}
+.card:hover{border-color:rgba(34,211,238,.35)}
+.card-info h3{margin:0;font-family:var(--font-display);font-size:1.25rem}
+.card-info p{margin:6px 0 0;color:var(--muted);font-size:.88rem;max-width:650px}
+.card-meta{display:flex;gap:16px;margin-top:12px;font-family:var(--font-mono);font-size:.76rem;color:var(--muted);flex-wrap:wrap}
+.card-meta span{display:inline-flex;align-items:center;gap:6px}
+.card-price{font-family:var(--font-display);font-size:1.6rem;font-weight:800;color:var(--pass)}
+.card-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.status-pill{font-family:var(--font-mono);font-size:.68rem;padding:3px 9px;border-radius:999px;text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.status-open{background:rgba(34,211,238,.12);color:var(--brand);border:1px solid rgba(34,211,238,.3)}
+.status-assigned{background:rgba(255,176,122,.15);color:var(--warn);border:1px solid rgba(255,176,122,.35)}
+.status-in_progress{background:rgba(61,255,160,.14);color:var(--pass);border:1px solid rgba(61,255,160,.4)}
+.status-requested{background:rgba(255,176,122,.12);color:var(--warn);border:1px solid rgba(255,176,122,.3)}
+.status-approved{background:rgba(61,255,160,.12);color:var(--pass);border:1px solid rgba(61,255,160,.3)}
+
+.workspace-card{border:1px solid var(--line);border-radius:16px;background:radial-gradient(circle at top right, rgba(34,211,238,.12), transparent),var(--surface);padding:36px;text-align:center;margin-top:20px}
+.workspace-card svg{width:56px;height:56px;color:var(--brand);margin-bottom:14px;filter:drop-shadow(0 0 12px rgba(34,211,238,.5))}
+.workspace-card h2{margin:0 0 8px;font-family:var(--font-display);font-size:1.8rem}
+.workspace-card p{margin:0 0 24px;color:var(--muted);max-width:560px;margin-inline:auto}
+.scope-pill{display:inline-block;padding:6px 14px;border-radius:99px;background:rgba(4,10,18,.6);border:1px solid var(--line);font-family:var(--font-mono);font-size:.8rem;margin:4px}
+
+/* Request Modal */
+.modal-layer{position:fixed;inset:0;background:rgba(2,6,12,.7);backdrop-filter:blur(6px);z-index:90;display:none;place-items:center;padding:20px}
+.modal-layer.open{display:grid}
+.modal-card{width:min(540px,100%);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:26px;box-shadow:var(--shadow)}
+.modal-card h2{margin:0 0 8px;font-family:var(--font-display);font-size:1.4rem}
+.modal-card p{margin:0 0 16px;color:var(--muted);font-size:.85rem}
+.modal-card textarea{width:100%;background:rgba(4,10,18,.6);border:1.5px solid var(--line);border-radius:10px;padding:11px 14px;font-family:var(--font-ui);min-height:90px;color:var(--ink);margin-bottom:16px}
+.modal-card textarea:focus{border-color:var(--brand);outline:none}
+.modal-acts{display:flex;justify-content:flex-end;gap:10px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 24px;border-radius:999px;font-weight:700;font-size:.9rem;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,.5);display:flex;align-items:center;gap:10px;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.toast.ok{background:var(--pass);color:#02131a}.toast.err{background:var(--fail);color:#fff}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="#" onclick="showView('open'); return false;">
+      <svg width="20" height="22" viewBox="0 0 16 18" fill="none"><path d="M8 1 2 3.6v5.1c0 3.5 2.5 6.4 6 7.8 3.5-1.4 6-4.3 6-7.8V3.6L8 1Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m5.4 8.8 2 2 3.4-3.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Perimeter Zero<small>Pentester</small></span>
+    </a>
+    <div class="user-nav">
+      <a href="/download-zip" class="btn sm" download style="color:var(--brand); border-color:rgba(34,211,238,.4);">Download ZIP</a>
+      <a href="perimeter-zero-checklist.html">Checklist</a>
+      <a href="#" onclick="logout(); return false;">Logout</a>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span id="nav-tester-name" style="color:var(--ink); font-weight:700;">Pentester</span>
+        <div class="avatar" id="nav-avatar">P</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="nav-item active" data-view="open" onclick="showView('open')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m10 15 5-3-5-3v6z"/></svg>
+      Open Projects
+      <span class="badge" id="open-badge">0</span>
+    </div>
+    <div class="nav-item" data-view="active" onclick="showView('active')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      Active & Assigned
+      <span class="badge" id="active-badge" style="display:none; background:var(--pass)">0</span>
+    </div>
+    <div class="nav-item" data-view="my-requests" onclick="showView('my-requests')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+      My Sent Requests
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <!-- View: Open Projects -->
+    <div class="view active" id="view-open">
+      <div class="page-header">
+        <div class="page-title">
+          <h1>Open Engagements</h1>
+          <p>Browse live scoped programs posted by companies and send testing proposals.</p>
+        </div>
+      </div>
+      <div class="list-grid" id="open-list"></div>
+    </div>
+
+    <!-- View: Active & Assigned Projects -->
+    <div class="view" id="view-active">
+      <div class="page-header">
+        <div class="page-title">
+          <h1>Active & Assigned Engagements</h1>
+          <p>Projects accepted by company owners. Click <b>Start Project</b> to initiate testing and trigger your OWASP checklist.</p>
+        </div>
+      </div>
+      <div class="list-grid" id="active-list"></div>
+    </div>
+
+    <!-- View: My Requests -->
+    <div class="view" id="view-my-requests">
+      <div class="page-header">
+        <div class="page-title">
+          <h1>My Sent Proposals</h1>
+          <p>Track the status of your requests submitted to project owners.</p>
+        </div>
+      </div>
+      <div class="list-grid" id="requests-list"></div>
+    </div>
+
+    <!-- View: Workspace / Launch Details -->
+    <div class="view" id="view-workspace">
+      <div class="page-header">
+        <div class="page-title">
+          <button class="btn sm" style="margin-bottom:12px;" onclick="showView('active')">&larr; Back to Active Projects</button>
+          <h1 id="ws-title">Engagement Workspace</h1>
+          <p id="ws-company">Company target assessment</p>
+        </div>
+      </div>
+      <div class="workspace-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 1 2 3.6v5.1c0 3.5 2.5 6.4 6 7.8 3.5-1.4 6-4.3 6-7.8V3.6L8 1Z"/><path d="m5.4 8.8 2 2 3.4-3.8"/></svg>
+        <h2 id="ws-headline">Ready for Penetration Testing</h2>
+        <p id="ws-desc">Review the scope assets assigned to you by the project owner. Click below to launch the Perimeter Zero checklist with real-time test execution.</p>
+        <div style="margin-bottom:28px;" id="ws-assets"></div>
+        <button class="btn success" style="font-size:1.15rem; padding:16px 36px;" id="ws-start-btn" onclick="startAndLaunchCurrentProject()">
+          Launch Pentest Checklist &rarr;
+        </button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal: Send Request to Company -->
+<div class="modal-layer" id="modal-send-request" onclick="if(event.target===this)closeRequestModal()">
+  <div class="modal-card">
+    <h2 id="req-modal-title">Request to Test Engagement</h2>
+    <p>Send a proposal to the company admin. Once accepted, this engagement will appear in your Active Projects to start testing.</p>
+    <label style="font-family:var(--font-mono); font-size:.7rem; color:var(--muted); text-transform:uppercase; margin-bottom:6px; display:block;">Your Message / Proposal</label>
+    <textarea id="req-modal-msg" placeholder="e.g. Certified security researcher (OSCP, CEH). Available to begin immediately and deliver comprehensive OWASP Top 10 coverage."></textarea>
+    <div class="modal-acts">
+      <button class="btn" onclick="closeRequestModal()">Cancel</button>
+      <button class="btn primary" id="btn-submit-request" onclick="submitProjectRequest()">Submit Request &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const token = localStorage.getItem('pz_token');
+const userStr = localStorage.getItem('pz_user') || localStorage.getItem('pz_session');
+const user = userStr ? JSON.parse(userStr) : null;
+
+if (!token || !user || user.role !== 'tester') {
+  window.location.href = 'signin-register.html';
+}
+
+document.getElementById('nav-tester-name').textContent = user.name || 'Tester';
+document.getElementById('nav-avatar').textContent = (user.name || 'T').charAt(0).toUpperCase();
+
+function logout() {
+  localStorage.removeItem('pz_token');
+  localStorage.removeItem('pz_user');
+  localStorage.removeItem('pz_session');
+  window.location.href = 'signin-register.html';
+}
+
+function api(path, options = {}) {
+  const headers = options.headers || {};
+  headers['Authorization'] = `Bearer ${token}`;
+  if (options.body && typeof options.body === 'object') {
+    headers['Content-Type'] = 'application/json';
+    options.body = JSON.stringify(options.body);
+  }
+  options.headers = headers;
+  return fetch(path, options).then(async res => {
+    if (res.status === 401) { logout(); throw new Error('Session expired'); }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Request failed');
+    return data;
+  });
+}
+
+let activeProjectsCache = [];
+let targetProjectIdToRequest = null;
+let currentWorkspaceProject = null;
+
+function showView(viewId) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(`view-${viewId}`).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navItem = document.querySelector(`.nav-item[data-view="${viewId}"]`);
+  if (navItem) navItem.classList.add('active');
+  
+  if (viewId === 'open') loadOpenProjects();
+  if (viewId === 'active') loadActiveProjects();
+  if (viewId === 'my-requests') loadMyRequests();
+}
+
+async function loadOpenProjects() {
+  const list = document.getElementById('open-list');
+  list.innerHTML = '<div style="color:var(--muted); padding:20px;">Scanning for open projects...</div>';
+
+  try {
+    const projects = await api('/api/projects/open');
+    document.getElementById('open-badge').textContent = projects.length;
+
+    if (!projects || projects.length === 0) {
+      list.innerHTML = `
+        <div class="card" style="justify-content:center; text-align:center; padding:48px 20px;">
+          <div>
+            <h3 style="margin-bottom:6px;">No Open Engagements Right Now</h3>
+            <p style="color:var(--muted);">Check back soon! When companies publish new scoped assessments, they will appear here.</p>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    list.innerHTML = projects.map(p => {
+      const assets = Array.isArray(p.assets) ? p.assets : [];
+      const reqStatus = p.my_request_status; // 'requested', 'approved', or null
+      let actionBtn = '';
+
+      if (reqStatus === 'requested') {
+        actionBtn = '<span class="status-pill status-requested">Request Pending Admin Approval</span>';
+      } else if (reqStatus === 'approved') {
+        actionBtn = '<button class="btn success" onclick="showView(\'active\')">Approved! Go to Active &rarr;</button>';
+      } else {
+        actionBtn = `<button class="btn primary" onclick="openRequestModal('${p.id}', '${p.name.replace(/'/g, "\\'")}')">Request to Test &rarr;</button>`;
+      }
+
+      return `
+        <div class="card">
+          <div class="card-info">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+              <h3>${p.name}</h3>
+              <span class="status-pill status-open">Open</span>
+            </div>
+            <p>${p.description || 'No description provided.'}</p>
+            <div class="card-meta">
+              <span>Client: <b>${p.company_name || 'Verified Company'}</b></span>
+              <span>Assets: <b>${assets.length}</b></span>
+              <span>Posted: <b>${new Date(p.created_at).toLocaleDateString()}</b></span>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="card-price">$${Number(p.price).toLocaleString()}</div>
+            <div class="card-actions" style="margin-top:12px;">
+              ${actionBtn}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    list.innerHTML = `<div style="color:var(--fail); padding:16px;">${err.message}</div>`;
+  }
+}
+
+async function loadActiveProjects() {
+  const list = document.getElementById('active-list');
+  list.innerHTML = '<div style="color:var(--muted); padding:20px;">Loading your active projects...</div>';
+
+  try {
+    const projects = await api('/api/projects/active');
+    activeProjectsCache = projects || [];
+    
+    const badge = document.getElementById('active-badge');
+    if (activeProjectsCache.length > 0) {
+      badge.textContent = activeProjectsCache.length;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+
+    if (!activeProjectsCache || activeProjectsCache.length === 0) {
+      list.innerHTML = `
+        <div class="card" style="justify-content:center; text-align:center; padding:48px 20px;">
+          <div>
+            <h3 style="margin-bottom:6px;">No Active Projects Assigned Yet</h3>
+            <p style="color:var(--muted); margin-bottom:16px;">When an admin accepts your request, the project appears here ready to be started.</p>
+            <button class="btn primary" onclick="showView('open')">Browse Open Projects</button>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    list.innerHTML = activeProjectsCache.map(p => {
+      const assets = Array.isArray(p.assets) ? p.assets : [];
+      const isAssigned = p.status === 'assigned';
+      const statusLabel = p.status.replace('_', ' ');
+
+      return `
+        <div class="card" style="border-left: 4px solid ${isAssigned ? 'var(--warn)' : 'var(--pass)'};">
+          <div class="card-info">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+              <h3>${p.name}</h3>
+              <span class="status-pill status-${p.status}">${statusLabel}</span>
+            </div>
+            <p>${p.description || 'Target scope verified and escrow funded.'}</p>
+            <div class="card-meta">
+              <span>Client: <b>${p.company_name}</b></span>
+              <span>In Scope: <b>${assets.map(a => a.value).join(', ') || 'Targets defined'}</b></span>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="card-price">$${Number(p.price).toLocaleString()}</div>
+            <div class="card-actions" style="margin-top:12px;">
+              ${isAssigned ? `
+                <button class="btn success btn-start-project" id="btn-start-${p.id}" onclick="startAndLaunchProject('${p.id}')">
+                  <b>Start Project &rarr;</b>
+                </button>
+              ` : `
+                <button class="btn primary" onclick="launchChecklistFor('${p.id}')">
+                  Open Checklist &rarr;
+                </button>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    list.innerHTML = `<div style="color:var(--fail); padding:16px;">${err.message}</div>`;
+  }
+}
+
+async function loadMyRequests() {
+  const list = document.getElementById('requests-list');
+  list.innerHTML = '<div style="color:var(--muted); padding:20px;">Loading your requests...</div>';
+
+  try {
+    const requests = await api('/api/projects/my-requests');
+    if (!requests || requests.length === 0) {
+      list.innerHTML = `
+        <div class="card" style="justify-content:center; text-align:center; padding:48px 20px;">
+          <div>
+            <h3 style="margin-bottom:6px;">No Requests Sent Yet</h3>
+            <p style="color:var(--muted); margin-bottom:16px;">Browse open projects and submit proposals to get hired.</p>
+            <button class="btn primary" onclick="showView('open')">Browse Open Projects</button>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    list.innerHTML = requests.map(r => `
+      <div class="card">
+        <div class="card-info">
+          <h3>${r.name}</h3>
+          <p>Client: <b>${r.company_name}</b> · Requested: ${new Date(r.requested_at).toLocaleDateString()}</p>
+          <div class="card-meta">
+            <span>Project Status: <b class="status-pill status-${r.project_status}">${r.project_status}</b></span>
+          </div>
+        </div>
+        <div>
+          <span class="status-pill status-${r.request_status}">Review: ${r.request_status}</span>
+          ${r.request_status === 'approved' ? `
+            <div style="margin-top:10px;">
+              <button class="btn sm success" onclick="showView('active')">Go to Active Project &rarr;</button>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    list.innerHTML = `<div style="color:var(--fail); padding:16px;">${err.message}</div>`;
+  }
+}
+
+function openRequestModal(projectId, projectName) {
+  targetProjectIdToRequest = projectId;
+  document.getElementById('req-modal-title').textContent = `Request to Test "${projectName}"`;
+  document.getElementById('req-modal-msg').value = '';
+  document.getElementById('modal-send-request').classList.add('open');
+}
+
+function closeRequestModal() {
+  document.getElementById('modal-send-request').classList.remove('open');
+  targetProjectIdToRequest = null;
+}
+
+async function submitProjectRequest() {
+  if (!targetProjectIdToRequest) return;
+  const msg = document.getElementById('req-modal-msg').value.trim();
+  const btn = document.getElementById('btn-submit-request');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
+  try {
+    await api(`/api/projects/${targetProjectIdToRequest}/requests`, {
+      method: 'POST',
+      body: { message: msg }
+    });
+    showToast('Proposal sent to company owner!', 'ok');
+    closeRequestModal();
+    loadOpenProjects();
+  } catch (err) {
+    showToast(err.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Submit Request →';
+  }
+}
+
+function openWorkspace(projectId) {
+  const proj = activeProjectsCache.find(p => p.id === projectId);
+  if (!proj) return launchChecklistFor(projectId);
+
+  currentWorkspaceProject = proj;
+  document.getElementById('ws-title').textContent = proj.name;
+  document.getElementById('ws-company').textContent = `Client: ${proj.company_name} · Bounty Escrow: $${Number(proj.price).toLocaleString()}`;
+  document.getElementById('ws-desc').textContent = proj.description || 'Target scope verified and escrow funded.';
+  
+  const assets = Array.isArray(proj.assets) ? proj.assets : [];
+  const assetHTML = assets.map(a => `<span class="scope-pill">Target [${a.type || 'WEB'}]: <b>${a.value}</b></span>`).join(' ');
+  document.getElementById('ws-assets').innerHTML = assetHTML || '<span class="scope-pill">All application endpoints</span>';
+
+  const startBtn = document.getElementById('ws-start-btn');
+  if (proj.status === 'assigned') {
+    startBtn.textContent = 'Start Project & Launch Checklist →';
+  } else {
+    startBtn.textContent = 'Resume Pentest Checklist →';
+  }
+
+  showView('workspace');
+}
+
+async function startAndLaunchProject(projId) {
+  try {
+    await api(`/api/projects/${projId}/start`, { method: 'POST' });
+    showToast('Project started! Opening checklist...', 'ok');
+  } catch (err) {
+    console.warn('Start note:', err.message);
+  }
+  window.location.href = `perimeter-zero-checklist.html?projectId=${projId}`;
+}
+
+async function startAndLaunchCurrentProject() {
+  if (!currentWorkspaceProject) return;
+  const projId = currentWorkspaceProject.id;
+  
+  if (currentWorkspaceProject.status === 'assigned') {
+    try {
+      await api(`/api/projects/${projId}/start`, { method: 'POST' });
+      showToast('Project started! Loading checklist...', 'ok');
+    } catch (err) {
+      console.warn('Start note:', err.message);
+    }
+  }
+
+  window.location.href = `perimeter-zero-checklist.html?projectId=${projId}`;
+}
+
+function launchChecklistFor(projId) {
+  window.location.href = `perimeter-zero-checklist.html?projectId=${projId}`;
+}
+
+let toastTimeout;
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show ${type}`;
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+loadOpenProjects();
+loadActiveProjects();
+</script>
+</body>
+</html>
