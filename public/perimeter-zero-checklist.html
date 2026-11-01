@@ -1218,6 +1218,22 @@ function safeHref(u) {
   return "#blocked";
 }
 
+/* Any value that originates from the API (test status, severity, project
+   status) must never be trusted to be well-formed before it lands in the
+   DOM — it gets checked against a fixed allow-list and anything outside
+   it is dropped, regardless of escaping. This is on top of esc(), not
+   instead of it: defense in depth. */
+const VALID_RESULT_STATUS = new Set(["pass", "fail", "na", ""]);
+const VALID_SEVERITY = new Set(["C", "H", "M", "L", "I", ""]);
+const VALID_PROJECT_STATUS = new Set(["pending", "active", "in_progress", "in_review", "completed", "cancelled", "paused"]);
+
+function safeResultStatus(v) { return VALID_RESULT_STATUS.has(v) ? v : ""; }
+function safeSeverity(v) { return VALID_SEVERITY.has(v) ? v : ""; }
+function safeProjectStatus(v) {
+  const s = String(v ?? "");
+  return VALID_PROJECT_STATUS.has(s) ? s : "unknown";
+}
+
 function counts() {
   const c = { total: 0, pass: 0, fail: 0, na: 0, untested: 0, failSev: { C: 0, H: 0, M: 0, L: 0, I: 0, U: 0 } };
   SUITES.forEach(s => s.tests.forEach(x => {
@@ -1284,9 +1300,9 @@ async function loadTargetProject() {
         dbResults.forEach(r => {
           if (r.test_id) {
             currentResults[r.test_id] = {
-              s: r.status,
-              v: r.severity || '',
-              n: r.notes || '',
+              s: safeResultStatus(r.status),
+              v: safeSeverity(r.severity || ''),
+              n: String(r.notes || ''),
               t: r.updated_at ? new Date(r.updated_at).getTime() : Date.now()
             };
           }
@@ -1389,7 +1405,7 @@ function renderOverview(vh, vb, c) {
         <a class="url" href="${esc(safeHref(primaryUrl))}" target="_blank" rel="noopener noreferrer">${esc(primaryUrl)}</a>
         <div class="chips">
           <span class="chip">Client: ${esc(activeProject.company_name || 'Owner')}</span>
-          <span class="chip">Status: ${activeProject.status.replace('_', ' ')}</span>
+          <span class="chip">Status: ${esc(safeProjectStatus(activeProject.status).replace('_', ' '))}</span>
           <span class="chip">${c.total} OWASP Tests Armed</span>
           <span class="chip">$${Number(activeProject.price || 0).toLocaleString()} Bounty</span>
         </div>
@@ -1603,7 +1619,7 @@ function chipsHtml(sC) {
 function cardHtml(s, x, showCategory = false) {
   const [id, title, vars, verify] = x;
   const r = currentResults[id] || {};
-  const st = r.s || '';
+  const st = safeResultStatus(r.s || '');
   const openNotes = ui.notes.has(id);
   const openReq = ui.req.has(id);
 
@@ -1653,7 +1669,7 @@ function cardHtml(s, x, showCategory = false) {
   ` : '';
 
   return `
-    <article class="tc" data-s="${st}" id="tc-${id}">
+    <article class="tc" data-s="${esc(st)}" id="tc-${esc(id)}">
       <div class="tc-main">
         <div class="tc-h">
           ${statusIcon(st)}
