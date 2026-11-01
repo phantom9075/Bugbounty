@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none';">
 <title>Perimeter Zero · Pentest Checklist & Findings</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1205,6 +1206,18 @@ let ui = {
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+/* Only http(s) URLs are ever rendered as a clickable href. Anything else
+   (javascript:, data:, vbscript:, a bare string with no scheme that a
+   browser would still try to navigate, etc.) is treated as untrusted
+   and neutralized to a dead "#" link so it can never execute. */
+function safeHref(u) {
+  try {
+    const parsed = new URL(String(u ?? ""), window.location.href);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") return parsed.href;
+  } catch (e) { /* fall through to blocked */ }
+  return "#blocked";
+}
+
 function counts() {
   const c = { total: 0, pass: 0, fail: 0, na: 0, untested: 0, failSev: { C: 0, H: 0, M: 0, L: 0, I: 0, U: 0 } };
   SUITES.forEach(s => s.tests.forEach(x => {
@@ -1373,7 +1386,7 @@ function renderOverview(vh, vb, c) {
       </div>
       <div>
         <h1>${esc(activeProject.name)}</h1>
-        <a class="url" href="${esc(primaryUrl)}" target="_blank" rel="noopener noreferrer">${esc(primaryUrl)}</a>
+        <a class="url" href="${esc(safeHref(primaryUrl))}" target="_blank" rel="noopener noreferrer">${esc(primaryUrl)}</a>
         <div class="chips">
           <span class="chip">Client: ${esc(activeProject.company_name || 'Owner')}</span>
           <span class="chip">Status: ${activeProject.status.replace('_', ' ')}</span>
